@@ -1,8 +1,16 @@
 #include "main-installer-window.hpp"
 
+#include "helpers/find-gmod-directory.hpp"
+#include "helpers/find-steam-directory.hpp"
+#include "install/detect-gelly-installation.hpp"
+
 #include <imgui.h>
 
 namespace gelly {
+namespace {
+constexpr auto HEADER = "Gelly Installer";
+}
+
 void MainInstallerWindow::Render() {
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -10,7 +18,37 @@ void MainInstallerWindow::Render() {
   ImGui::Begin("Installer", &showMainInstallerWindow,
                ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
 
-  ImGui::Text("Hello, world!");
+  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
+  ImGui::SetCursorPosX(
+      (ImGui::GetWindowWidth() - ImGui::CalcTextSize(HEADER).x) / 2);
+  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+
+  ImGui::Text(HEADER);
+  ImGui::Separator();
+  ImGui::PopFont();
+
+  const auto steamPath = helpers::FindSteamDirectory();
+  if (steamPath.has_value()) {
+    ImGui::Text("Steam found at: %s", steamPath->generic_string().c_str());
+    const auto gmodPath = helpers::FindGModDirectory(*steamPath);
+    if (gmodPath.has_value()) {
+      ImGui::Text("Garry's Mod found at: %s",
+                  gmodPath->generic_string().c_str());
+
+      const auto gellyInstallation = DetectGellyInstallation(*gmodPath);
+      if (gellyInstallation.has_value()) {
+        ImGui::Text("Gelly found at: %s",
+                    gellyInstallation->addonPath.generic_string().c_str());
+        ImGui::Text("Gelly version: %s", gellyInstallation->version.c_str());
+      } else {
+        ImGui::Text("Gelly not found");
+      }
+    } else {
+      ImGui::Text("Garry's Mod not found");
+    }
+  } else {
+    ImGui::Text("Steam not found");
+  }
 
   ImGui::End();
   ImGui::PopStyleVar();

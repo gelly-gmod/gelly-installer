@@ -7,6 +7,7 @@ set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 project(gelly_installer)
 
 add_subdirectory(vendor/SDL)
+add_subdirectory(vendor/VDFParser)
 
 add_executable(gelly_installer WIN32
         src/main.cpp
@@ -23,17 +24,25 @@ add_executable(gelly_installer WIN32
         src/gui.hpp
         src/gui/main-installer-window.cpp
         src/gui/main-installer-window.hpp
+        src/helpers/find-steam-directory.cpp
+        src/helpers/find-steam-directory.hpp
+        src/helpers/find-gmod-directory.cpp
+        src/helpers/find-gmod-directory.hpp
+        src/install/detect-gelly-installation.cpp
+        src/install/detect-gelly-installation.hpp
 )
 
 target_link_libraries(gelly_installer
         SDL2-static
         SDL2main
+        VDFParser
 )
 
 target_include_directories(gelly_installer
         PRIVATE
         src
         vendor/SDL/include
+        vendor/VDFParser
         vendor/imgui
 )
 

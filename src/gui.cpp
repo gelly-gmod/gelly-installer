@@ -48,6 +48,8 @@ void GUI::InitializeImGUI() const {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
 
   io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 16.0f);
+  io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 72.0f);
+  io.FontDefault = io.Fonts->Fonts[0];
 
   ImGui_ImplSDL2_InitForSDLRenderer(window->GetWindow(), window->GetRenderer());
   ImGui_ImplSDLRenderer2_Init(window->GetRenderer());
