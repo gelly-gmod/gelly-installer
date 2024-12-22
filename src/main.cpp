@@ -1,6 +1,35 @@
-#include <cstdio>
+#include "gui.hpp"
+#include "window.hpp"
 
-int main() {
-    printf("Hello, World!\n");
-    return 0;
+#include <SDL.h>
+#include <cstdio>
+#include <memory>
+
+int main(int argc, char *argv[]) {
+  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
+    return 1;
+  }
+
+  std::shared_ptr<gelly::Window> window = std::make_shared<gelly::Window>();
+  std::shared_ptr<gelly::GUI> gui = std::make_shared<gelly::GUI>(window);
+
+  window->RunEventLoop(
+      [&](SDL_Event &ev) {
+        if (ev.type == SDL_QUIT) {
+          return false;
+        }
+
+        gui->ProcessSDLEvent(ev);
+        return true;
+      },
+      [&]() {
+        if (!gui->RunFrame()) {
+          return false;
+        }
+
+        return true;
+      });
+
+  return 0;
 }
