@@ -13,9 +13,27 @@ constexpr auto HEADER = "Gelly Installer";
 }
 
 MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl)
-    : curl(std::move(curl)) {}
+    : curl(std::move(curl)), latestGellyInfo(GetLatestGellyInfo(this->curl)) {
+  DetectGellyInstallation();
+}
 
 void MainInstallerWindow::Render() {
+  if (!latestGellyInfo.has_value()) {
+    ImGui::OpenPopup("Fatal Error");
+    if (ImGui::BeginPopupModal("Fatal Error", nullptr,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Failed to fetch latest Gelly version. Try restarting the "
+                  "installer later.");
+      if (ImGui::Button("OK")) {
+        ImGui::CloseCurrentPopup();
+        std::exit(1);
+      }
+      ImGui::EndPopup();
+    }
+
+    return;
+  }
+
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
@@ -31,41 +49,33 @@ void MainInstallerWindow::Render() {
   ImGui::Separator();
   ImGui::PopFont();
 
-  const auto steamPath = helpers::FindSteamDirectory();
-  if (steamPath.has_value()) {
-    ImGui::Text("Steam found at: %s", steamPath->generic_string().c_str());
-    const auto gmodPath = helpers::FindGModDirectory(*steamPath);
-    if (gmodPath.has_value()) {
-      ImGui::Text("Garry's Mod found at: %s",
-                  gmodPath->generic_string().c_str());
-
-      const auto gellyInstallation = DetectGellyInstallation(*gmodPath);
-      if (gellyInstallation.has_value()) {
-        ImGui::Text("Gelly found at: %s",
-                    gellyInstallation->addonPath.generic_string().c_str());
-        ImGui::Text("Gelly version: %s", gellyInstallation->version.c_str());
-
-        const auto latestGellyInfo = GetLatestGellyInfo(curl);
-        if (latestGellyInfo.has_value()) {
-          ImGui::Text("Latest Gelly version: %s",
-                      latestGellyInfo->version.c_str());
-          ImGui::Text("Download URL: %s", latestGellyInfo->downloadUrl.c_str());
-          ImGui::Text("Changelog: %s", latestGellyInfo->changelog.c_str());
-        } else {
-          ImGui::Text("Failed to fetch latest Gelly version");
-        }
-      } else {
-        ImGui::Text("Gelly not found");
-      }
-    } else {
-      ImGui::Text("Garry's Mod not found");
+  if (gellyInstallation.has_value()) {
+    ImGui::Text("Gelly %s is installed!", gellyInstallation->version.c_str());
+    if (gellyInstallation->IsOutdated(latestGellyInfo->version)) {
+      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
+                         "Gelly is outdated! Latest version: %s",
+                         latestGellyInfo->version.c_str());
     }
   } else {
-    ImGui::Text("Steam not found");
+    ImGui::Text("Gelly is not installed.");
   }
 
   ImGui::End();
   ImGui::PopStyleVar();
+}
+
+void MainInstallerWindow::DetectGellyInstallation() {
+  const auto steamPath = helpers::FindSteamDirectory();
+  if (!steamPath.has_value()) {
+    return;
+  }
+
+  const auto gmodPath = helpers::FindGModDirectory(*steamPath);
+  if (!gmodPath.has_value()) {
+    return;
+  }
+
+  gellyInstallation = gelly::DetectGellyInstallation(*gmodPath);
 }
 
 } // namespace gelly

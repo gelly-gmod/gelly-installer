@@ -6,7 +6,8 @@
 
 namespace gelly {
 GUI::GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl)
-    : window(std::move(window)), curl(std::move(curl)), mainInstallerWindow(curl) {
+    : window(std::move(window)), curl(std::move(curl)),
+      mainInstallerWindow(curl) {
   InitializeImGUI();
 }
 
@@ -51,6 +52,14 @@ void GUI::InitializeImGUI() const {
   io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 16.0f);
   io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 72.0f);
   io.FontDefault = io.Fonts->Fonts[0];
+
+  auto &style = ImGui::GetStyle();
+  style.Colors[ImGuiCol_TitleBg] = ImVec4(0.5f, 0.1f, 0.1f, 1.0f);
+  style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.5f, 0.1f, 0.1f, 1.0f);
+  style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.5f, 0.1f, 0.1f, 1.0f);
+  style.WindowRounding = 4.f;
+  style.WindowPadding = ImVec2(8, 8);
+  style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
 
   ImGui_ImplSDL2_InitForSDLRenderer(window->GetWindow(), window->GetRenderer());
   ImGui_ImplSDLRenderer2_Init(window->GetRenderer());
