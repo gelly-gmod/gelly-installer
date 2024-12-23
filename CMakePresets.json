@@ -15,7 +15,9 @@
         "CMAKE_CXX_COMPILER": "clang++",
         "CMAKE_C_COMPILER": "clang",
         "CURL_LIBRARY": "$env{CURL_LIBRARY}",
-        "CURL_INCLUDE_DIR": "$env{CURL_INCLUDE_DIRS}"
+        "CURL_INCLUDE_DIR": "$env{CURL_INCLUDE_DIRS}",
+        "ZLIB_LIBRARY": "$env{ZLIB_LIBRARY}",
+        "ZLIB_INCLUDE_DIR": "$env{ZLIB_INCLUDE_DIR}"
       }
     },
     {

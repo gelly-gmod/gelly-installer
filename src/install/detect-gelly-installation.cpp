@@ -56,7 +56,7 @@ DetectGellyInstallation(const std::filesystem::path &gmodPath) {
     return std::nullopt;
   }
 
-  bool oldInstallation = !std::filesystem::exists(addonPath / "gelly.gma");
+  bool oldInstallation = std::filesystem::exists(addonPath / "gelly.gma");
 
   return {{
       .addonPath = addonPath,

@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
         gui->ProcessSDLEvent(ev);
         return true;
       },
-      [&]() {
+      [&] {
         if (!gui->RunFrame()) {
           return false;
         }

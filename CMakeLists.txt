@@ -9,6 +9,7 @@ project(gelly_installer)
 add_subdirectory(vendor/SDL)
 add_subdirectory(vendor/VDFParser)
 add_subdirectory(vendor/json)
+add_subdirectory(vendor/libzip)
 
 find_package(CURL REQUIRED)
 
@@ -37,6 +38,8 @@ add_executable(gelly_installer WIN32
         src/install/get-latest-gelly.hpp
         src/curl.cpp
         src/curl.hpp
+        src/install/install-gelly.cpp
+        src/install/install-gelly.hpp
 )
 
 target_link_libraries(gelly_installer
@@ -44,6 +47,7 @@ target_link_libraries(gelly_installer
         SDL2main
         VDFParser
         CURL::libcurl
+        libzip::zip
         wldap32
         ws2_32
 )

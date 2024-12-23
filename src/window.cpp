@@ -4,8 +4,8 @@
 
 namespace gelly {
 namespace {
-constexpr auto WINDOW_WIDTH = 800;
-constexpr auto WINDOW_HEIGHT = 600;
+constexpr auto WINDOW_WIDTH = 1366;
+constexpr auto WINDOW_HEIGHT = 768;
 constexpr auto WINDOW_TITLE = "Gelly Installer";
 } // namespace
 
