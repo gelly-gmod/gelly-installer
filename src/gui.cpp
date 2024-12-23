@@ -5,7 +5,8 @@
 #include <imgui.h>
 
 namespace gelly {
-GUI::GUI(std::shared_ptr<Window> window) : window(std::move(window)) {
+GUI::GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl)
+    : window(std::move(window)), curl(std::move(curl)), mainInstallerWindow(curl) {
   InitializeImGUI();
 }
 

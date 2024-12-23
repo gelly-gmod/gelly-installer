@@ -9,6 +9,8 @@ project(gelly_installer)
 add_subdirectory(vendor/SDL)
 add_subdirectory(vendor/VDFParser)
 
+find_package(CURL REQUIRED)
+
 add_executable(gelly_installer WIN32
         src/main.cpp
         src/window.cpp
@@ -30,12 +32,19 @@ add_executable(gelly_installer WIN32
         src/helpers/find-gmod-directory.hpp
         src/install/detect-gelly-installation.cpp
         src/install/detect-gelly-installation.hpp
+        src/install/get-latest-gelly.cpp
+        src/install/get-latest-gelly.hpp
+        src/curl.cpp
+        src/curl.hpp
 )
 
 target_link_libraries(gelly_installer
         SDL2-static
         SDL2main
         VDFParser
+        CURL::libcurl
+        wldap32
+        ws2_32
 )
 
 target_include_directories(gelly_installer
@@ -56,5 +65,18 @@ target_compile_definitions(gelly_installer
 add_custom_command(TARGET gelly_installer POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
         ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui/misc/fonts/Roboto-Medium.ttf
+        $<TARGET_FILE_DIR:gelly_installer>
+)
+
+# copy libcurl-x64.dll and curl-ca-bundle.crt to the build directory
+add_custom_command(TARGET gelly_installer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CURL_INCLUDE_DIRS}/../bin/libcurl-x64.dll
+        $<TARGET_FILE_DIR:gelly_installer>
+)
+
+add_custom_command(TARGET gelly_installer POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+        ${CURL_INCLUDE_DIRS}/../bin/curl-ca-bundle.crt
         $<TARGET_FILE_DIR:gelly_installer>
 )

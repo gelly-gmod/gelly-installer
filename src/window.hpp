@@ -2,6 +2,8 @@
 #include <SDL_events.h>
 #include <SDL_render.h>
 
+#undef CreateWindow
+
 namespace gelly {
 class Window {
 public:

@@ -11,8 +11,9 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  std::shared_ptr<gelly::Window> window = std::make_shared<gelly::Window>();
-  std::shared_ptr<gelly::GUI> gui = std::make_shared<gelly::GUI>(window);
+  auto curl = std::make_shared<gelly::Curl>();
+  auto window = std::make_shared<gelly::Window>();
+  const auto gui = std::make_shared<gelly::GUI>(window, curl);
 
   window->RunEventLoop(
       [&](SDL_Event &ev) {

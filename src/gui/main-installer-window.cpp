@@ -11,6 +11,9 @@ namespace {
 constexpr auto HEADER = "Gelly Installer";
 }
 
+MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl)
+    : curl(std::move(curl)) {}
+
 void MainInstallerWindow::Render() {
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
   ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -40,6 +43,15 @@ void MainInstallerWindow::Render() {
         ImGui::Text("Gelly found at: %s",
                     gellyInstallation->addonPath.generic_string().c_str());
         ImGui::Text("Gelly version: %s", gellyInstallation->version.c_str());
+
+        const auto response = curl->Get("https://example.com");
+        if (response->responseCode == 200) {
+          ImGui::Text("Latest Gelly version: %s", response->data->data());
+        } else {
+          ImGui::Text("Failed to get latest Gelly version: %ld",
+                      response->responseCode);
+        }
+
       } else {
         ImGui::Text("Gelly not found");
       }
