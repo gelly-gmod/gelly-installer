@@ -1,4 +1,7 @@
 #pragma once
+#include "curl.hpp"
+
+#include <optional>
 #include <string>
 
 namespace gelly {
@@ -8,5 +11,6 @@ struct LatestGellyInfo {
   std::string changelog;
 };
 
-LatestGellyInfo GetLatestGellyInfo();
+std::optional<LatestGellyInfo>
+GetLatestGellyInfo(const std::shared_ptr<Curl> &curl);
 } // namespace gelly

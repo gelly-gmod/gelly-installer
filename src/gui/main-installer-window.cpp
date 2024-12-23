@@ -3,6 +3,7 @@
 #include "helpers/find-gmod-directory.hpp"
 #include "helpers/find-steam-directory.hpp"
 #include "install/detect-gelly-installation.hpp"
+#include "install/get-latest-gelly.hpp"
 
 #include <imgui.h>
 
@@ -44,14 +45,15 @@ void MainInstallerWindow::Render() {
                     gellyInstallation->addonPath.generic_string().c_str());
         ImGui::Text("Gelly version: %s", gellyInstallation->version.c_str());
 
-        const auto response = curl->Get("https://example.com");
-        if (response->responseCode == 200) {
-          ImGui::Text("Latest Gelly version: %s", response->data->data());
+        const auto latestGellyInfo = GetLatestGellyInfo(curl);
+        if (latestGellyInfo.has_value()) {
+          ImGui::Text("Latest Gelly version: %s",
+                      latestGellyInfo->version.c_str());
+          ImGui::Text("Download URL: %s", latestGellyInfo->downloadUrl.c_str());
+          ImGui::Text("Changelog: %s", latestGellyInfo->changelog.c_str());
         } else {
-          ImGui::Text("Failed to get latest Gelly version: %ld",
-                      response->responseCode);
+          ImGui::Text("Failed to fetch latest Gelly version");
         }
-
       } else {
         ImGui::Text("Gelly not found");
       }

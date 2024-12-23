@@ -1,10 +1,13 @@
 #include "curl.hpp"
 
 namespace gelly {
+namespace {
+constexpr auto USER_AGENT = "gelly-installer/1.0";
+}
 Curl::Curl() { curl_global_init(CURL_GLOBAL_ALL); }
 Curl::~Curl() { curl_global_cleanup(); }
 
-std::shared_ptr<Response> Curl::Get(const std::string &url) {
+std::shared_ptr<Response> Curl::Get(const std::string &url) const {
   const auto handle = curl_easy_init();
   if (!handle) {
     return nullptr;
@@ -18,6 +21,7 @@ std::shared_ptr<Response> Curl::Get(const std::string &url) {
   curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt(handle, CURLOPT_CAINFO, "curl-ca-bundle.crt");
   curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 1L);
+  curl_easy_setopt(handle, CURLOPT_USERAGENT, USER_AGENT);
 
   const auto code = curl_easy_perform(handle);
   if (code != CURLE_OK) {
@@ -32,9 +36,8 @@ size_t Curl::WriteCallback(void *contents, size_t size, size_t nmemb,
                            void *userp) {
   const auto realSize = size * nmemb;
   auto *response = static_cast<Response *>(userp);
-  response->data->insert(response->data->end(),
-                         static_cast<std::byte *>(contents),
-                         static_cast<std::byte *>(contents) + realSize);
+  response->data->insert(response->data->end(), static_cast<char *>(contents),
+                         static_cast<char *>(contents) + realSize);
   return realSize;
 }
 } // namespace gelly

@@ -8,6 +8,7 @@ project(gelly_installer)
 
 add_subdirectory(vendor/SDL)
 add_subdirectory(vendor/VDFParser)
+add_subdirectory(vendor/json)
 
 find_package(CURL REQUIRED)
 
@@ -53,6 +54,7 @@ target_include_directories(gelly_installer
         vendor/SDL/include
         vendor/VDFParser
         vendor/imgui
+        vendor/json/include
 )
 
 target_compile_definitions(gelly_installer
