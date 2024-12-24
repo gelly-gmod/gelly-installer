@@ -11,9 +11,7 @@ foreach (file ${EXTRA_FILES})
 endforeach ()
 
 message(STATUS "Creating archive ${ARCHIVE_NAME} with files ${ARCHIVE_FILES}")
-file(ARCHIVE_CREATE
-        OUTPUT ${ARCHIVE_NAME}
-        PATHS ${ARCHIVE_FILES}
-        FORMAT zip
-        VERBOSE
-)
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/release")
+foreach (file ${ARCHIVE_FILES})
+  file(COPY "${file}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/release")
+endforeach ()
