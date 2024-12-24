@@ -41,7 +41,7 @@ jobs:
           path: installer
       - name: Zip Installer
         run: |
-          Compress-Archive -Path .\installer -DestinationPath installer.zip
+          Compress-Archive -Path .\installer\installer -DestinationPath installer.zip
       - name: Sparse checkout changelog
         uses: actions/checkout@v4
         with:
