@@ -29,3 +29,36 @@ jobs:
         with:
           name: installer
           path: build/ci-release/release/ # path to the release assembled by CMake
+  make-release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    needs: build
+    steps:
+      - name: Download Installer Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: installer
+      - name: Zip Installer
+        run: |
+          Compress-Archive -Path .\installer -DestinationPath installer.zip
+      - name: Sparse checkout changelog
+        uses: actions/checkout@v4
+        with:
+          path: changelog
+          sparse-checkout: "CHANGELOG.md"
+          sparse-checkout-cone-mode: false
+      - name: Parse changelog
+        id: parse-changelog
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          validation_level: warn
+          path: changelog/CHANGELOG.md
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.zip
+          name: ${{ steps.parse-changelog.outputs.version }}
+          body: ${{ steps.parse-changelog.outputs.changes }}
+          tag_name: ${{ steps.parse-changelog.outputs.version }}
