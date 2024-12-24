@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./branding/gelly_installer_readme.png" alt="Gelly Installer" />
+  <img src="./branding/gelly_installer_readme.png" width=128 height=128 alt="Gelly Installer" />
   <h1>Gelly Installer</h1>
 </div>
 
