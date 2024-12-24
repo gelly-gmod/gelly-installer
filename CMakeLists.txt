@@ -41,6 +41,13 @@ add_executable(gelly_installer WIN32
         src/curl.hpp
         src/install/install-gelly.cpp
         src/install/install-gelly.hpp
+        src/install/uninstall-gelly.cpp
+        src/install/uninstall-gelly.hpp
+        src/gui/popups/outdated-gelly.cpp
+        src/gui/popups/uninstall-gelly.cpp
+        src/gui/popups/fatal-error.cpp
+        src/helpers/launch-gmod.cpp
+        src/helpers/launch-gmod.hpp
 )
 
 target_link_libraries(gelly_installer

@@ -2,17 +2,13 @@
 
 #include "helpers/find-gmod-directory.hpp"
 #include "helpers/find-steam-directory.hpp"
+#include "uninstall-gelly.hpp"
 
 #include <fstream>
 #include <zip.h>
 
 namespace gelly {
 namespace {
-void CleanOldInstallation(const GellyInstallation &installation) {
-  remove_all(installation.addonPath);
-  remove(installation.binaryModulePath);
-}
-
 // Response doesn't need to be used, but we need to keep it alive because
 // libzip is a sucky C library that requires manual memory management.
 struct ReleaseInfo {
@@ -110,7 +106,7 @@ void InstallGelly(const LatestGellyInfo &info,
                   const std::shared_ptr<Curl> &curl,
                   std::optional<GellyInstallation> priorInstallation) {
   if (priorInstallation.has_value()) {
-    CleanOldInstallation(priorInstallation.value());
+    UninstallGelly(*priorInstallation);
   }
 
   const auto release = DownloadRelease(info.downloadUrl, curl);
