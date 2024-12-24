@@ -5,7 +5,8 @@ set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
-cmake_policy(SET CMP0077 NEW) # important, this prevents older libraries such as libzip from using shared libraries
+# we use a global policy because every target should try to statically link
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 project(gelly_installer)
 
