@@ -4,6 +4,7 @@
 #include "helpers/find-steam-directory.hpp"
 #include "install/detect-gelly-installation.hpp"
 #include "install/get-latest-gelly.hpp"
+#include "install/install-gelly.hpp"
 
 #include <imgui.h>
 
@@ -30,7 +31,6 @@ void MainInstallerWindow::Render() {
       }
       ImGui::EndPopup();
     }
-
     return;
   }
 
@@ -49,15 +49,8 @@ void MainInstallerWindow::Render() {
   ImGui::Separator();
   ImGui::PopFont();
 
-  if (gellyInstallation.has_value()) {
-    ImGui::Text("Gelly %s is installed!", gellyInstallation->version.c_str());
-    if (gellyInstallation->IsOutdated(latestGellyInfo->version)) {
-      ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
-                         "Gelly is outdated! Latest version: %s",
-                         latestGellyInfo->version.c_str());
-    }
-  } else {
-    ImGui::Text("Gelly is not installed.");
+  if (ImGui::Button("Upgrade")) {
+    InstallGelly(*latestGellyInfo, curl, gellyInstallation);
   }
 
   ImGui::End();
