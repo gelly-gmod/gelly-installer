@@ -36,9 +36,9 @@ jobs:
     needs: build
     steps:
       - name: Download Installer Artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
-          name: installer
+          path: installer
       - name: Zip Installer
         run: |
           Compress-Archive -Path .\installer -DestinationPath installer.zip
