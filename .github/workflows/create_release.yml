@@ -18,6 +18,9 @@ jobs:
         with:
           version: 18
           platform: x64
+      - name: Download rcedit-x64
+        run: |
+          Invoke-WebRequest "https://github.com/electron/rcedit/releases/download/v2.0.0/rcedit-x64.exe" -OutFile "rcedit-x64.exe"
       - name: Setup External Dependencies
         run: |
           .\install_dependencies.ps1

@@ -16,6 +16,7 @@ add_subdirectory(vendor/json)
 add_subdirectory(vendor/libzip)
 
 find_package(CURL REQUIRED)
+find_program(RCEDIT rcedit-x64 rcedit)
 
 add_executable(gelly_installer WIN32
         src/main.cpp
@@ -87,6 +88,17 @@ foreach (file ${EXTRA_FILES})
           ${file} $<TARGET_FILE_DIR:gelly_installer>)
 endforeach ()
 
+if (RCEDIT)
+  message(STATUS "Will set icon for gelly_installer.exe")
+  add_custom_command(TARGET gelly_installer POST_BUILD
+          COMMAND ${RCEDIT}
+          $<TARGET_FILE:gelly_installer>
+          --set-icon ${CMAKE_CURRENT_SOURCE_DIR}/branding/gelly_installer.ico
+  )
+else ()
+  message(WARNING "Could not find rcedit, will not set icon for gelly_installer.exe")
+endif ()
+
 if (GELLY_CREATE_RELEASE)
   message(STATUS "CI: Will create release artifact")
 
@@ -99,4 +111,3 @@ if (GELLY_CREATE_RELEASE)
           -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CreateReleaseArtifact.cmake
   )
 endif ()
-
