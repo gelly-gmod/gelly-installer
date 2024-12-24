@@ -41,6 +41,17 @@
         "CMAKE_BUILD_TYPE": "Debug"
       },
       "binaryDir": "${sourceDir}/build/debug"
+    },
+    {
+      "name": "ci-release",
+      "inherits": [
+        "release"
+      ],
+      "description": "CI Release, builds a release artifact",
+      "cacheVariables": {
+        "GELLY_CREATE_RELEASE": "ON"
+      },
+      "binaryDir": "${sourceDir}/build/ci-release"
     }
   ]
 }

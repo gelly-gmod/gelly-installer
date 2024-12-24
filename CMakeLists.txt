@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.28.0)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
+
 set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -75,22 +77,25 @@ target_compile_definitions(gelly_installer
         NOMINMAX
 )
 
-# copy Roboto-Medium.ttf from imgui/misc/fonts to the build directory
-add_custom_command(TARGET gelly_installer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CMAKE_CURRENT_SOURCE_DIR}/vendor/imgui/misc/fonts/Roboto-Medium.ttf
-        $<TARGET_FILE_DIR:gelly_installer>
-)
+include(ExtraFiles)
+get_extra_files(${CMAKE_CURRENT_SOURCE_DIR})
 
-# copy libcurl-x64.dll and curl-ca-bundle.crt to the build directory
-add_custom_command(TARGET gelly_installer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CURL_INCLUDE_DIRS}/../bin/libcurl-x64.dll
-        $<TARGET_FILE_DIR:gelly_installer>
-)
+foreach (file ${EXTRA_FILES})
+  add_custom_command(TARGET gelly_installer POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          ${file} $<TARGET_FILE_DIR:gelly_installer>)
+endforeach ()
 
-add_custom_command(TARGET gelly_installer POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${CURL_INCLUDE_DIRS}/../bin/curl-ca-bundle.crt
-        $<TARGET_FILE_DIR:gelly_installer>
-)
+if (GELLY_CREATE_RELEASE)
+  message(STATUS "CI: Will create release artifact")
+
+  add_custom_command(TARGET gelly_installer POST_BUILD
+          COMMAND ${CMAKE_COMMAND}
+          -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+          -DCMAKE_CURRENT_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}
+          -DCURL_INCLUDE_DIRS=${CURL_INCLUDE_DIRS}
+          -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+          -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/CreateReleaseArtifact.cmake
+  )
+endif ()
+
