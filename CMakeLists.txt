@@ -52,6 +52,10 @@ add_executable(gelly_installer WIN32
         src/gui/popups/fatal-error.cpp
         src/helpers/launch-gmod.cpp
         src/helpers/launch-gmod.hpp
+        src/logging/log.hpp
+        src/logging/log.cpp
+        src/logging/crash-logging.cpp
+        src/logging/crash-logging.hpp
 )
 
 target_link_libraries(gelly_installer

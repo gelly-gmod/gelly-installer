@@ -1,4 +1,7 @@
 #include "get-latest-gelly.hpp"
+
+#include "logging/log.hpp"
+
 #include <nlohmann/json.hpp>
 
 namespace gelly {
@@ -11,6 +14,8 @@ std::optional<LatestGellyInfo>
 GetLatestGellyInfo(const std::shared_ptr<Curl> &curl) {
   const auto response = curl->Get(LATEST_RELEASE_URL);
   if (response->responseCode != 200) {
+    Log::Error("Failed to get latest Gelly release info: status code {}",
+               response->responseCode);
     return std::nullopt;
   }
 

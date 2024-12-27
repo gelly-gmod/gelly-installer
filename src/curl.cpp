@@ -1,13 +1,23 @@
 #include "curl.hpp"
 
+#include "logging/log.hpp"
+
 namespace gelly {
 namespace {
 constexpr auto USER_AGENT = "gelly-installer/1.0";
 }
-Curl::Curl() { curl_global_init(CURL_GLOBAL_ALL); }
-Curl::~Curl() { curl_global_cleanup(); }
+Curl::Curl() {
+  Log::Info("Initializing CURL");
+  curl_global_init(CURL_GLOBAL_ALL);
+}
+
+Curl::~Curl() {
+  Log::Info("Shutting down CURL");
+  curl_global_cleanup();
+}
 
 std::shared_ptr<Response> Curl::Get(const std::string &url) const {
+  Log::Info("Performing GET request to '{}'", url);
   const auto handle = curl_easy_init();
   if (!handle) {
     return nullptr;
@@ -25,6 +35,8 @@ std::shared_ptr<Response> Curl::Get(const std::string &url) const {
 
   const auto code = curl_easy_perform(handle);
   if (code != CURLE_OK) {
+    Log::Error("Failed to perform GET request to '{}': {}", url,
+               curl_easy_strerror(code));
     response->responseCode = code;
   } else {
     curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &response->responseCode);

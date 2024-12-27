@@ -1,5 +1,7 @@
 #include "gui.hpp"
 
+#include "logging/log.hpp"
+
 #include <backends/imgui_impl_sdl2.h>
 #include <backends/imgui_impl_sdlrenderer2.h>
 #include <imgui.h>
@@ -63,12 +65,15 @@ void GUI::InitializeImGUI() const {
 
   ImGui_ImplSDL2_InitForSDLRenderer(window->GetWindow(), window->GetRenderer());
   ImGui_ImplSDLRenderer2_Init(window->GetRenderer());
+
+  Log::Info("Initialized ImGUI");
 }
 
 void GUI::ShutdownImGUI() {
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
+  Log::Info("Shutdown ImGUI");
 }
 
 } // namespace gelly

@@ -2,6 +2,7 @@
 
 #include "helpers/find-gmod-directory.hpp"
 #include "helpers/find-steam-directory.hpp"
+#include "logging/log.hpp"
 #include "uninstall-gelly.hpp"
 
 #include <fstream>
@@ -47,8 +48,10 @@ void ExtractReleaseToDir(const std::filesystem::path &dir,
     throw std::runtime_error("Failed to open zip archive.");
   }
 
+  Log::Info("Extracting Gelly release to {}", dir.string());
   try {
     zip_int64_t numFiles = zip_get_num_files(archive);
+    Log::Info("Extracting {} files from zip archive.", numFiles);
     for (zip_int64_t i = 0; i < numFiles; i++) {
       auto *file = zip_fopen_index(archive, i, 0);
       if (!file) {
@@ -94,22 +97,27 @@ void ExtractReleaseToDir(const std::filesystem::path &dir,
       zip_fclose(file);
     }
   } catch (...) {
+    Log::Error("Failed to extract Gelly release.");
     zip_discard(archive);
     throw;
   }
 
   zip_discard(archive);
+  Log::Info("Extracted Gelly release to {}", dir.string());
 }
 } // namespace
 
 void InstallGelly(const LatestGellyInfo &info,
                   const std::shared_ptr<Curl> &curl,
                   std::optional<GellyInstallation> priorInstallation) {
+  Log::Info("Installing Gelly version {}", info.version);
   if (priorInstallation.has_value()) {
     UninstallGelly(*priorInstallation);
+    Log::Info("Uninstalled prior Gelly installation.");
   }
 
   const auto release = DownloadRelease(info.downloadUrl, curl);
+  Log::Info("Downloading Gelly release.");
   if (release.IsEmpty()) {
     throw std::runtime_error("Failed to download Gelly release.");
   }
@@ -120,6 +128,7 @@ void InstallGelly(const LatestGellyInfo &info,
     throw std::runtime_error("Failed to find Garry's Mod directory.");
   }
 
+  Log::Info("Extracting Gelly release to Garry's Mod directory.");
   ExtractReleaseToDir(*gmodDir, release);
 }
 

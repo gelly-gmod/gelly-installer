@@ -7,6 +7,7 @@
 #include "install/get-latest-gelly.hpp"
 #include "install/install-gelly.hpp"
 #include "install/uninstall-gelly.hpp"
+#include "logging/log.hpp"
 
 #include <imgui.h>
 
@@ -17,7 +18,14 @@ constexpr auto HEADER = "Gelly Installer";
 
 MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl)
     : curl(std::move(curl)), latestGellyInfo(GetLatestGellyInfo(this->curl)) {
+  Log::Info("Latest Gelly version: {}",
+            latestGellyInfo.has_value() ? latestGellyInfo->version : "N/A");
+
   DetectGellyInstallation();
+  Log::Info("Gelly installation detected: {}",
+            gellyInstallation.has_value() ? "yes" : "no");
+  Log::Info("Gelly version: {}",
+            gellyInstallation.has_value() ? gellyInstallation->version : "N/A");
 }
 
 void MainInstallerWindow::Render() {
@@ -58,6 +66,7 @@ void MainInstallerWindow::Render() {
     ImGui::TextColored(ImVec4(0.1f, 0.8f, 0.1f, 1.0f), "%s",
                        gellyInstallation->version.c_str());
   }
+
   ImGui::Separator();
   ImGui::PopFont();
 
@@ -117,6 +126,8 @@ void MainInstallerWindow::DetectGellyInstallation() {
     return;
   }
 
+  Log::Info("Garry's Mod directory: {}", gmodPath->string());
+  Log::Info("Steam directory: {}", steamPath->string());
   gellyInstallation = gelly::DetectGellyInstallation(*gmodPath);
 }
 
