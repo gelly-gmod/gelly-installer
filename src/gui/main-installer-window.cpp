@@ -48,8 +48,22 @@ void MainInstallerWindow::Render() {
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
 
   ImGui::Text(HEADER);
+
+  if (gellyInstallation.has_value()) {
+    ImGui::SetCursorPosX(
+        (ImGui::GetWindowWidth() -
+         ImGui::CalcTextSize(gellyInstallation->version.c_str()).x) /
+        2);
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
+    ImGui::TextColored(ImVec4(0.1f, 0.8f, 0.1f, 1.0f), "%s",
+                       gellyInstallation->version.c_str());
+  }
   ImGui::Separator();
   ImGui::PopFont();
+
+  const auto buttonSize = ImVec2(ImGui::GetWindowWidth() - 20, 40);
+  // dock buttons to the bottom of the window
+  ImGui::SetCursorPosY(ImGui::GetWindowHeight() - buttonSize.y * 2.5);
 
   if (gellyInstallation.has_value() &&
       gellyInstallation->IsOutdated(latestGellyInfo->version) &&
@@ -62,29 +76,22 @@ void MainInstallerWindow::Render() {
                            "Gelly is out of date: %s",
                            gellyInstallation->version.c_str());
 
-        if (ImGui::Button("Update Gelly")) {
+        if (ImGui::Button("Update Gelly", buttonSize)) {
           ImGui::OpenPopup("Outdated Gelly");
         }
-
-        ImGui::SameLine();
       } else {
-        ImGui::Text("Gelly is up to date: %s",
-                    gellyInstallation->version.c_str());
-
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
-        if (ImGui::Button("Launch")) {
+        if (ImGui::Button("Launch", buttonSize)) {
           LaunchGMod();
         }
         ImGui::PopStyleColor();
-        ImGui::SameLine();
       }
 
-      if (ImGui::Button("Uninstall Gelly")) {
+      if (ImGui::Button("Uninstall Gelly", buttonSize)) {
         ImGui::OpenPopup("Uninstall Gelly");
       }
     } else {
-      ImGui::Text("Gelly is not installed.");
-      if (ImGui::Button("Install Gelly")) {
+      if (ImGui::Button("Install Gelly", buttonSize)) {
         try {
           InstallGelly(*latestGellyInfo, curl, std::nullopt);
           DetectGellyInstallation();
