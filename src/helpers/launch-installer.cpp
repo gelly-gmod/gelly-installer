@@ -11,15 +11,8 @@ const auto INSTALLER_EXE = std::string("gelly_installer.exe");
 }
 
 void LaunchInstaller(const std::filesystem::path &installerPath) {
-  auto exePath = installerPath.string();
-  // I don't know why but there are tons of null characters at the end of the
-  // string, so we need to remove them
-  exePath.erase(std::find(exePath.begin(), exePath.end(), '\0'), exePath.end());
-  exePath += "\\" + INSTALLER_EXE + '\0';
+  auto exePath = installerPath.string() + "\\" + INSTALLER_EXE;
   auto workingDir = installerPath.string();
-  workingDir.erase(std::find(workingDir.begin(), workingDir.end(), '\0'),
-                   workingDir.end());
-  workingDir += '\0';
 
   SHELLEXECUTEINFO info = {};
   info.cbSize = sizeof(SHELLEXECUTEINFO);

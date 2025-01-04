@@ -27,17 +27,6 @@ int main(int argc, char *argv[]) {
     auto cwdString = cwd.generic_string();
     auto installPathString = installPath.generic_string();
 
-    // erase the null characters at the end of the string
-    cwdString.erase(std::find(cwdString.begin(), cwdString.end(), '\0'),
-                    cwdString.end());
-
-    installPathString.erase(
-        std::find(installPathString.begin(), installPathString.end(), '\0'),
-        installPathString.end());
-
-    cwdString += '\0';
-    installPathString += '\0';
-
     if (cwdString != installPathString) {
       gelly::helpers::LaunchInstaller(
           gelly::Config::GetAppInstallPath().value());

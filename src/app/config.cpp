@@ -2,6 +2,7 @@
 
 #include "helpers/parse-version.hpp"
 
+#include <array>
 #include <windows.h>
 
 namespace gelly {
@@ -10,8 +11,8 @@ auto REGISTRY_PARENT = std::string("SOFTWARE\\") + Config::APP_NAME;
 auto KEY = HKEY_CURRENT_USER;
 
 std::optional<std::string> FetchFromGellyRegistry(const std::string &subkey) {
-  std::string value(MAX_PATH, '\0');
-  DWORD size = value.size();
+  std::array<char, MAX_PATH> value = {};
+  DWORD size = sizeof(value);
 
   const auto path = REGISTRY_PARENT;
   if (RegGetValue(KEY, path.c_str(), subkey.c_str(), RRF_RT_REG_SZ, nullptr,
@@ -19,7 +20,8 @@ std::optional<std::string> FetchFromGellyRegistry(const std::string &subkey) {
     return std::nullopt;
   }
 
-  return value;
+  std::string valueStr(value.begin(), value.begin() + (size - 1));
+  return valueStr;
 }
 
 void WriteToGellyRegistry(const std::string &subkey, const std::string &value) {
