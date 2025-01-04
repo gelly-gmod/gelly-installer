@@ -66,6 +66,10 @@ add_executable(gelly_installer WIN32
         src/helpers/launch-installer.hpp
         src/helpers/parse-version.cpp
         src/helpers/parse-version.hpp
+        src/app/setup-uri-handler.cpp
+        src/app/setup-uri-handler.hpp
+        src/app/registry.cpp
+        src/app/registry.hpp
 )
 
 target_link_libraries(gelly_installer
