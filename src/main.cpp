@@ -22,8 +22,6 @@ int main(int argc, char *argv[]) {
     gelly::Log::Info("URI handler not registered, attempting to register");
     gelly::Log::Info(
         "Running with elevated privileges, registering URI handler");
-    MessageBoxW(nullptr, L"Running with non-elevated privileges", L"Info",
-                MB_OK | MB_ICONINFORMATION);
     gelly::SetupURIHandler();
   }
 
