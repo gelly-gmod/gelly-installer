@@ -56,6 +56,16 @@ add_executable(gelly_installer WIN32
         src/logging/log.cpp
         src/logging/crash-logging.cpp
         src/logging/crash-logging.hpp
+        src/helpers/find-app-data.cpp
+        src/helpers/find-app-data.hpp
+        src/app/config.cpp
+        src/app/config.hpp
+        src/app/relocate-installation.cpp
+        src/app/relocate-installation.hpp
+        src/helpers/launch-installer.cpp
+        src/helpers/launch-installer.hpp
+        src/helpers/parse-version.cpp
+        src/helpers/parse-version.hpp
 )
 
 target_link_libraries(gelly_installer
