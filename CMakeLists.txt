@@ -56,6 +56,16 @@ add_executable(gelly_installer WIN32
         src/logging/log.cpp
         src/logging/crash-logging.cpp
         src/logging/crash-logging.hpp
+        src/helpers/find-app-data.cpp
+        src/helpers/find-app-data.hpp
+        src/app/config.cpp
+        src/app/config.hpp
+        src/app/relocate-installation.cpp
+        src/app/relocate-installation.hpp
+        src/helpers/launch-installer.cpp
+        src/helpers/launch-installer.hpp
+        src/helpers/parse-version.cpp
+        src/helpers/parse-version.hpp
 )
 
 target_link_libraries(gelly_installer
@@ -71,6 +81,7 @@ target_link_libraries(gelly_installer
 target_include_directories(gelly_installer
         PRIVATE
         src
+        ${CMAKE_CURRENT_BINARY_DIR}/src
         vendor/SDL/include
         vendor/VDFParser
         vendor/imgui
@@ -84,7 +95,10 @@ target_compile_definitions(gelly_installer
 )
 
 include(ExtraFiles)
+include(GetCurrentVersion)
 get_extra_files(${CMAKE_CURRENT_SOURCE_DIR})
+get_current_version_from_changelog(${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md)
+configure_file(src/version.hpp.in src/version.hpp @ONLY)
 
 foreach (file ${EXTRA_FILES})
   add_custom_command(TARGET gelly_installer POST_BUILD
