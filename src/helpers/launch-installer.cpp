@@ -14,7 +14,7 @@ const auto INSTALLER_EXE = std::string("gelly_installer.exe");
 }
 
 void LaunchInstaller(const std::filesystem::path &installerPath,
-                     bool askForElevation) {
+                     bool askForElevation, int argc, char *argv[]) {
   gelly::Log::SaveToFile();
   auto exePath = installerPath.string() + "\\" + INSTALLER_EXE;
   auto workingDir = installerPath.string();
@@ -28,6 +28,16 @@ void LaunchInstaller(const std::filesystem::path &installerPath,
   info.nShow = SW_SHOW;
   info.lpVerb = "open";
   info.hwnd = nullptr;
+
+  std::string args;
+  if (argc > 1) {
+    for (auto i = 1; i < argc; ++i) {
+      args += argv[i];
+      args += " ";
+    }
+
+    info.lpParameters = args.c_str();
+  }
 
   if (askForElevation) {
     info.lpVerb = "runas";

@@ -38,8 +38,8 @@ bool Config::IsAppUpToDate() {
 }
 
 bool Config::IsURIHandlerRegistered() {
-  if (const auto uriHandler = FetchFromGellyRegistry(
-          {.key = HKEY_CLASSES_ROOT, .parentKey = APP_URI_HANDLER});
+  if (const auto uriHandler =
+          FetchFromGellyRegistry({.parentKey = APP_URI_HANDLER});
       uriHandler.has_value()) {
     return *uriHandler == APP_URI_DEFAULT;
   }

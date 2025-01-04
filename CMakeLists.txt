@@ -117,7 +117,7 @@ if (RCEDIT)
   add_custom_command(TARGET gelly_installer POST_BUILD
           COMMAND ${RCEDIT}
           $<TARGET_FILE:gelly_installer>
-          --set-icon ${CMAKE_CURRENT_SOURCE_DIR}/branding/gelly_installer.ico --set-product-name "Gelly Installer"
+          --set-icon ${CMAKE_CURRENT_SOURCE_DIR}/branding/gelly_installer.ico --set-version-string "ProductName" "Gelly Installer"
   )
 else ()
   message(WARNING "Could not find rcedit, will not set icon for gelly_installer.exe")

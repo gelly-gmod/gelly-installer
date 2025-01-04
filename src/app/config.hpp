@@ -11,7 +11,7 @@ class Config {
 public:
   static constexpr auto APP_NAME = "GellyInstaller";
   static constexpr auto APP_VERSION = GELLY_INSTALLER_VERSION;
-  static constexpr auto APP_URI_HANDLER = "gelly-installer";
+  static constexpr auto APP_URI_HANDLER = "SOFTWARE\\CLASSES\\gelly-installer";
   static constexpr auto APP_URI_DEFAULT = "URL:Gelly Installer Protocol";
 
   static optional<std::filesystem::path> GetAppInstallPath();

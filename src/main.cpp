@@ -20,23 +20,11 @@ int main(int argc, char *argv[]) {
   if (!gelly::Config::IsURIHandlerRegistered() &&
       gelly::Config::IsAppInstalled()) {
     gelly::Log::Info("URI handler not registered, attempting to register");
-    if (!gelly::helpers::DetectElevatedPrivileges()) {
-      gelly::Log::Info("Not running with elevated privileges, requesting them");
-      MessageBox(nullptr,
-                 "The installer will prompt for elevated privileges to install "
-                 "the URI handler.",
-                 "Info", MB_OK | MB_ICONINFORMATION);
-
-      gelly::helpers::LaunchInstaller(
-          gelly::Config::GetAppInstallPath().value(), true);
-      return 0;
-    } else {
-      gelly::Log::Info(
-          "Running with elevated privileges, registering URI handler");
-      MessageBoxW(nullptr, L"Running with elevated privileges", L"Info",
-                  MB_OK | MB_ICONINFORMATION);
-      gelly::SetupURIHandler();
-    }
+    gelly::Log::Info(
+        "Running with elevated privileges, registering URI handler");
+    MessageBoxW(nullptr, L"Running with non-elevated privileges", L"Info",
+                MB_OK | MB_ICONINFORMATION);
+    gelly::SetupURIHandler();
   }
 
   if (!gelly::Config::IsAppUpToDate()) {
@@ -45,7 +33,7 @@ int main(int argc, char *argv[]) {
     gelly::Config::SetAppInstallPath(newPath);
     gelly::Config::SetAppVersion(gelly::Config::APP_VERSION);
 
-    gelly::helpers::LaunchInstaller(newPath);
+    gelly::helpers::LaunchInstaller(newPath, false, argc, argv);
     return 0; // We already spawn from the new location anyway
   } else {
     const auto cwd = std::filesystem::current_path();
@@ -57,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     if (cwdString != installPathString) {
       gelly::helpers::LaunchInstaller(
-          gelly::Config::GetAppInstallPath().value());
+          gelly::Config::GetAppInstallPath().value(), false, argc, argv);
       return 0;
     }
   }
@@ -71,6 +59,13 @@ int main(int argc, char *argv[]) {
 
   gelly::SetupCrashLogging();
   gelly::Log::Info("Starting Gelly Installer");
+  gelly::Log::Info("Auto update: {}", autoUpdate ? "yes" : "no");
+  gelly::Log::Info("Arguments: {}", argc);
+  if (argc > 0) {
+    for (auto i = 0; i < argc; ++i) {
+      gelly::Log::Info("Argument {}: {}", i, argv[i]);
+    }
+  }
 
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
