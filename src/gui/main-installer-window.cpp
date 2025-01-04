@@ -34,6 +34,7 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
     try {
       InstallGelly(*latestGellyInfo, this->curl, gellyInstallation);
       DetectGellyInstallation();
+      LaunchGMod();
     } catch (const std::exception &e) {
       FatalError(e.what());
     }
