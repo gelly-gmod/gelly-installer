@@ -81,6 +81,7 @@ target_link_libraries(gelly_installer
 target_include_directories(gelly_installer
         PRIVATE
         src
+        ${CMAKE_CURRENT_BINARY_DIR}/src
         vendor/SDL/include
         vendor/VDFParser
         vendor/imgui
@@ -94,7 +95,10 @@ target_compile_definitions(gelly_installer
 )
 
 include(ExtraFiles)
+include(GetCurrentVersion)
 get_extra_files(${CMAKE_CURRENT_SOURCE_DIR})
+get_current_version_from_changelog(${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md)
+configure_file(src/version.hpp.in src/version.hpp @ONLY)
 
 foreach (file ${EXTRA_FILES})
   add_custom_command(TARGET gelly_installer POST_BUILD

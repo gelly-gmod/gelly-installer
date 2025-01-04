@@ -1,0 +1,2 @@
+#pragma once
+#cmakedefine GELLY_INSTALLER_VERSION "@GELLY_INSTALLER_VERSION@"
