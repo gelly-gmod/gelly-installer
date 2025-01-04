@@ -10,7 +10,6 @@ namespace gelly {
 class Config {
 public:
   static constexpr auto APP_NAME = "GellyInstaller";
-  // TODO: Fetch version from changelog
   static constexpr auto APP_VERSION = GELLY_INSTALLER_VERSION;
 
   static optional<std::filesystem::path> GetAppInstallPath();
