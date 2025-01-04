@@ -7,13 +7,15 @@ namespace gelly::helpers {
 const auto REGISTRY_PARENT = std::string("SOFTWARE\\") + Config::APP_NAME;
 const auto KEY = HKEY_CURRENT_USER;
 
-std::optional<std::string>
-FetchFromGellyRegistry(auto key = KEY,
-                       const std::string &parentKey = REGISTRY_PARENT,
-                       const std::optional<std::string> &subkey);
+struct RegistryPath {
+  HKEY key = KEY;
+  std::string parentKey = REGISTRY_PARENT;
+  std::optional<std::string> subkey = std::nullopt;
+};
 
-void WriteToGellyRegistry(
-    auto key = KEY, const std::string &parentKey = REGISTRY_PARENT,
-    const std::optional<std::string> &subkey = std::nullopt,
-    const std::string &value);
+std::optional<std::string> FetchFromGellyRegistry(RegistryPath &&registryPath);
+
+void WriteToGellyRegistry(RegistryPath &&registryPath,
+                          const std::string &value);
+
 } // namespace gelly::helpers

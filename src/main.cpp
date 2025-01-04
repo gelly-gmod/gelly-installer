@@ -1,5 +1,6 @@
 #include "app/config.hpp"
 #include "app/relocate-installation.hpp"
+#include "app/setup-uri-handler.hpp"
 #include "gui.hpp"
 #include "helpers/launch-installer.hpp"
 #include "logging/crash-logging.hpp"
@@ -36,6 +37,10 @@ int main(int argc, char *argv[]) {
           gelly::Config::GetAppInstallPath().value());
       return 0;
     }
+  }
+
+  if (!gelly::Config::IsURIHandlerRegistered()) {
+    gelly::SetupURIHandler();
   }
 
   auto autoUpdate = false;
