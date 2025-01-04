@@ -7,9 +7,10 @@
 #include <imgui.h>
 
 namespace gelly {
-GUI::GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl)
+GUI::GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl,
+         bool autoUpdate)
     : window(std::move(window)), curl(std::move(curl)),
-      mainInstallerWindow(curl) {
+      mainInstallerWindow(curl, autoUpdate) {
   InitializeImGUI();
 }
 

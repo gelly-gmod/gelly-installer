@@ -8,7 +8,8 @@
 namespace gelly {
 class GUI {
 public:
-  GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl);
+  GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl,
+      bool autoUpdate);
   ~GUI();
 
   bool RunFrame();

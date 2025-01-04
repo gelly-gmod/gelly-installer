@@ -16,7 +16,8 @@ namespace {
 constexpr auto HEADER = "Gelly Installer";
 }
 
-MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl)
+MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
+                                         bool autoUpdate)
     : curl(std::move(curl)), latestGellyInfo(GetLatestGellyInfo(this->curl)) {
   Log::Info("Latest Gelly version: {}",
             latestGellyInfo.has_value() ? latestGellyInfo->version : "N/A");
@@ -26,6 +27,17 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl)
             gellyInstallation.has_value() ? "yes" : "no");
   Log::Info("Gelly version: {}",
             gellyInstallation.has_value() ? gellyInstallation->version : "N/A");
+
+  // It's called auto-update but we also prefer installing Gelly if it's not
+  // installed already
+  if (autoUpdate && latestGellyInfo.has_value()) {
+    try {
+      InstallGelly(*latestGellyInfo, this->curl, gellyInstallation);
+      DetectGellyInstallation();
+    } catch (const std::exception &e) {
+      FatalError(e.what());
+    }
+  }
 }
 
 void MainInstallerWindow::Render() {

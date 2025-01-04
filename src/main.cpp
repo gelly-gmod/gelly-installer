@@ -10,6 +10,10 @@
 #include <cstdio>
 #include <memory>
 
+namespace {
+constexpr auto AUTO_UPDATE_ARG = "autoupdate";
+}
+
 int main(int argc, char *argv[]) {
   if (!gelly::Config::IsAppUpToDate()) {
     // Install this version to the directory
@@ -34,6 +38,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  auto autoUpdate = false;
+  if (argc > 1) {
+    // Since we also invoke auto updates using URI handlers, we find a substring
+    // instead of an exact match
+    autoUpdate = strstr(argv[1], AUTO_UPDATE_ARG) != nullptr;
+  }
+
   gelly::SetupCrashLogging();
   gelly::Log::Info("Starting Gelly Installer");
 
@@ -45,7 +56,7 @@ int main(int argc, char *argv[]) {
   gelly::Log::Info("SDL initialized, starting GUI");
   auto curl = std::make_shared<gelly::Curl>();
   auto window = std::make_shared<gelly::Window>();
-  const auto gui = std::make_shared<gelly::GUI>(window, curl);
+  const auto gui = std::make_shared<gelly::GUI>(window, curl, autoUpdate);
   gelly::Log::Info("GUI initialized, starting event loop");
 
   window->RunEventLoop(
