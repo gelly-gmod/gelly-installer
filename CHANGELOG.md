@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a protocol handler, so you can now open the installer by opening `gelly-installer://` links.
 - Auto-update is now available by passing `autoupdate` as a parameter to the installer.
-- [Try it now!](gelly-installer://autoupdate)
+- [![Static Badge](https://img.shields.io/badge/Install_with-Gelly_Installer-red?style=flat&link=https%3A%2F%2Fintradeus.github.io%2Fhttp-protocol-redirector%2F%3Fr%3Dgelly-installer%3Aautoupdate)](https://intradeus.github.io/http-protocol-redirector/?r=gelly-installer:autoupdate)
 
 ## [1.3.0] - 2025-01-03
 
