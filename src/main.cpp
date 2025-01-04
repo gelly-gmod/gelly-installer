@@ -20,8 +20,6 @@ int main(int argc, char *argv[]) {
   if (!gelly::Config::IsURIHandlerRegistered() &&
       gelly::Config::IsAppInstalled()) {
     gelly::Log::Info("URI handler not registered, attempting to register");
-    gelly::Log::Info(
-        "Running with elevated privileges, registering URI handler");
     gelly::SetupURIHandler();
   }
 
