@@ -66,6 +66,12 @@ add_executable(gelly_installer WIN32
         src/helpers/launch-installer.hpp
         src/helpers/parse-version.cpp
         src/helpers/parse-version.hpp
+        src/app/setup-uri-handler.cpp
+        src/app/setup-uri-handler.hpp
+        src/app/registry.cpp
+        src/app/registry.hpp
+        src/helpers/detect-elevation.cpp
+        src/helpers/detect-elevation.hpp
 )
 
 target_link_libraries(gelly_installer
@@ -111,7 +117,7 @@ if (RCEDIT)
   add_custom_command(TARGET gelly_installer POST_BUILD
           COMMAND ${RCEDIT}
           $<TARGET_FILE:gelly_installer>
-          --set-icon ${CMAKE_CURRENT_SOURCE_DIR}/branding/gelly_installer.ico
+          --set-icon ${CMAKE_CURRENT_SOURCE_DIR}/branding/gelly_installer.ico --set-version-string "ProductName" "Gelly Installer"
   )
 else ()
   message(WARNING "Could not find rcedit, will not set icon for gelly_installer.exe")

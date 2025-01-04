@@ -6,7 +6,7 @@
 namespace gelly {
 class MainInstallerWindow {
 public:
-  MainInstallerWindow(std::shared_ptr<Curl> curl);
+  MainInstallerWindow(std::shared_ptr<Curl> curl, bool autoUpdate);
   ~MainInstallerWindow() = default;
 
   void Render();
