@@ -39,9 +39,6 @@ int main(int argc, char *argv[]) {
     installPathString += '\0';
 
     if (cwdString != installPathString) {
-      MessageBox(nullptr, "Launching from installed location", "Info", MB_OK);
-      // Wait for debugger to attach
-      __debugbreak();
       gelly::helpers::LaunchInstaller(
           gelly::Config::GetAppInstallPath().value());
       return 0;
