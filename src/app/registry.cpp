@@ -21,13 +21,14 @@ std::optional<std::string> FetchFromGellyRegistry(RegistryPath &&registryPath) {
 
 void WriteToGellyRegistry(RegistryPath &&registryPath,
                           const std::string &value) {
-
-  if (RegSetKeyValue(
+  if (const auto code = RegSetKeyValue(
           registryPath.key, registryPath.parentKey.c_str(),
           registryPath.subkey.has_value() ? registryPath.subkey.value().c_str()
                                           : nullptr,
-          RRF_RT_REG_SZ, value.data(), value.size()) != ERROR_SUCCESS) {
-    throw std::runtime_error("Failed to write to registry");
+          RRF_RT_REG_SZ, value.data(), value.size());
+      code != ERROR_SUCCESS) {
+    throw std::runtime_error("Failed to write to registry: " +
+                             std::to_string(code));
   }
 }
 } // namespace gelly::helpers

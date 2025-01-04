@@ -43,6 +43,8 @@ bool Config::IsURIHandlerRegistered() {
       uriHandler.has_value()) {
     return *uriHandler == APP_URI_DEFAULT;
   }
+
+  return false;
 }
 
 } // namespace gelly

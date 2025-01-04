@@ -1,6 +1,9 @@
 #include "launch-installer.hpp"
 
 // clang-format off
+#include "logging/log.hpp"
+
+
 #include <windows.h>
 #include <shellapi.h>
 // clang-format on
@@ -10,7 +13,9 @@ namespace {
 const auto INSTALLER_EXE = std::string("gelly_installer.exe");
 }
 
-void LaunchInstaller(const std::filesystem::path &installerPath) {
+void LaunchInstaller(const std::filesystem::path &installerPath,
+                     bool askForElevation) {
+  gelly::Log::SaveToFile();
   auto exePath = installerPath.string() + "\\" + INSTALLER_EXE;
   auto workingDir = installerPath.string();
 
@@ -23,6 +28,10 @@ void LaunchInstaller(const std::filesystem::path &installerPath) {
   info.nShow = SW_SHOW;
   info.lpVerb = "open";
   info.hwnd = nullptr;
+
+  if (askForElevation) {
+    info.lpVerb = "runas";
+  }
 
   const auto result = ShellExecuteExA(&info);
   if (result == FALSE) {

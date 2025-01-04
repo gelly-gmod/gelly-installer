@@ -2,6 +2,7 @@
 #include "app/relocate-installation.hpp"
 #include "app/setup-uri-handler.hpp"
 #include "gui.hpp"
+#include "helpers/detect-elevation.hpp"
 #include "helpers/launch-installer.hpp"
 #include "logging/crash-logging.hpp"
 #include "logging/log.hpp"
@@ -16,6 +17,28 @@ constexpr auto AUTO_UPDATE_ARG = "autoupdate";
 }
 
 int main(int argc, char *argv[]) {
+  if (!gelly::Config::IsURIHandlerRegistered() &&
+      gelly::Config::IsAppInstalled()) {
+    gelly::Log::Info("URI handler not registered, attempting to register");
+    if (!gelly::helpers::DetectElevatedPrivileges()) {
+      gelly::Log::Info("Not running with elevated privileges, requesting them");
+      MessageBox(nullptr,
+                 "The installer will prompt for elevated privileges to install "
+                 "the URI handler.",
+                 "Info", MB_OK | MB_ICONINFORMATION);
+
+      gelly::helpers::LaunchInstaller(
+          gelly::Config::GetAppInstallPath().value(), true);
+      return 0;
+    } else {
+      gelly::Log::Info(
+          "Running with elevated privileges, registering URI handler");
+      MessageBoxW(nullptr, L"Running with elevated privileges", L"Info",
+                  MB_OK | MB_ICONINFORMATION);
+      gelly::SetupURIHandler();
+    }
+  }
+
   if (!gelly::Config::IsAppUpToDate()) {
     // Install this version to the directory
     const auto newPath = gelly::RelocateInstallation();
@@ -37,10 +60,6 @@ int main(int argc, char *argv[]) {
           gelly::Config::GetAppInstallPath().value());
       return 0;
     }
-  }
-
-  if (!gelly::Config::IsURIHandlerRegistered()) {
-    gelly::SetupURIHandler();
   }
 
   auto autoUpdate = false;
