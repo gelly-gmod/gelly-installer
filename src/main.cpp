@@ -17,6 +17,7 @@ constexpr auto AUTO_UPDATE_ARG = "autoupdate";
 }
 
 int main(int argc, char *argv[]) {
+#ifndef _DEBUG
   if (!gelly::Config::IsURIHandlerRegistered() &&
       gelly::Config::IsAppInstalled()) {
     gelly::Log::Info("URI handler not registered, attempting to register");
@@ -45,6 +46,7 @@ int main(int argc, char *argv[]) {
       return 0;
     }
   }
+#endif
 
   auto autoUpdate = false;
   if (argc > 1) {
