@@ -1,25 +1,21 @@
 #pragma once
-#include <SDL_events.h>
-#include <SDL_render.h>
+#include <clay.h>
 
 #undef CreateWindow
 
 namespace gelly {
 class Window {
 public:
+  static constexpr auto FONT_ID_BODY_16 = 0;
+
   Window();
   ~Window();
 
-  template <typename InputHandler, typename FrameHandler>
-  void RunEventLoop(InputHandler inputHandler, FrameHandler frameHandler) {
-    bool running = true;
-    SDL_Event ev;
-
-    while (running) {
-      while (SDL_PollEvent(&ev)) {
-        if (!inputHandler(ev)) {
-          running = false;
-        }
+  template <typename FrameHandler>
+  void RunEventLoop(FrameHandler frameHandler) {
+    while (!ShouldClose()) {
+      if (reinitializeClay) {
+        ReinitializeClay();
       }
 
       if (!frameHandler()) {
@@ -28,15 +24,14 @@ public:
     }
   }
 
-  SDL_Window *GetWindow() const { return window; }
-  SDL_Renderer *GetRenderer() const { return renderer; }
+  void RenderCommands(const Clay_RenderCommandArray &array);
 
 private:
-  SDL_Window *window;
-  SDL_Renderer *renderer;
+  static bool reinitializeClay;
+  static void HandleClayErrors(Clay_ErrorData error);
 
-  static SDL_Window *CreateWindow();
-  static SDL_Renderer *CreateRenderer(SDL_Window *window);
+  bool ShouldClose() const;
+  void ReinitializeClay();
 };
 
 } // namespace gelly

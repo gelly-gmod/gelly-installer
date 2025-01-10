@@ -8,7 +8,9 @@
 #include "install/install-gelly.hpp"
 #include "install/uninstall-gelly.hpp"
 #include "logging/log.hpp"
+#include "window.hpp"
 
+#include <clay.h>
 #include <imgui.h>
 
 namespace gelly {
@@ -36,96 +38,42 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
       DetectGellyInstallation();
       LaunchGMod();
     } catch (const std::exception &e) {
-      FatalError(e.what());
     }
   }
 }
 
 void MainInstallerWindow::Render() {
-  ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-  ImGui::Begin("Installer", &showMainInstallerWindow,
-               ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize);
+  auto expandLayout =
+      Clay_Sizing{.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0)};
 
-  if (!latestGellyInfo.has_value()) {
-    FatalError("Failed to get the latest Gelly info. Try again later. The "
-               "installer will now exit.");
-  }
+  auto background = Clay_RectangleElementConfig{.color = {20, 20, 20, 255},
+                                                .cornerRadius = 8};
 
-  HandleFatalErrorPopup();
-  HandleOutdatedGellyPopup();
-  HandleUninstallGellyPopup();
-
-  if (IsFatalErrorActive()) {
-    ImGui::End();
-    ImGui::PopStyleVar();
-    return;
-  }
-
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);
-  ImGui::SetCursorPosX(
-      (ImGui::GetWindowWidth() - ImGui::CalcTextSize(HEADER).x) / 2);
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-
-  ImGui::Text(HEADER);
-
-  if (gellyInstallation.has_value()) {
-    ImGui::SetCursorPosX(
-        (ImGui::GetWindowWidth() -
-         ImGui::CalcTextSize(gellyInstallation->version.c_str()).x) /
-        2);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 10);
-    ImGui::TextColored(ImVec4(0.1f, 0.8f, 0.1f, 1.0f), "%s",
-                       gellyInstallation->version.c_str());
-  }
-
-  ImGui::Separator();
-  ImGui::PopFont();
-
-  const auto buttonSize = ImVec2(ImGui::GetWindowWidth() - 20, 40);
-  // dock buttons to the bottom of the window
-  ImGui::SetCursorPosY(ImGui::GetWindowHeight() - buttonSize.y * 2.5);
-
-  if (gellyInstallation.has_value() &&
-      gellyInstallation->IsOutdated(latestGellyInfo->version) &&
-      showOutdatedGellyPopup) {
-    ImGui::OpenPopup("Outdated Gelly");
-  } else {
-    if (gellyInstallation.has_value()) {
-      if (gellyInstallation->IsOutdated(latestGellyInfo->version)) {
-        ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f),
-                           "Gelly is out of date: %s",
-                           gellyInstallation->version.c_str());
-
-        if (ImGui::Button("Update Gelly", buttonSize)) {
-          ImGui::OpenPopup("Outdated Gelly");
-        }
-      } else {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.5f, 0.0f, 1.0f));
-        if (ImGui::Button("Launch", buttonSize)) {
-          LaunchGMod();
-        }
-        ImGui::PopStyleColor();
-      }
-
-      if (ImGui::Button("Uninstall Gelly", buttonSize)) {
-        ImGui::OpenPopup("Uninstall Gelly");
-      }
-    } else {
-      if (ImGui::Button("Install Gelly", buttonSize)) {
-        try {
-          InstallGelly(*latestGellyInfo, curl, std::nullopt);
-          DetectGellyInstallation();
-        } catch (const std::exception &e) {
-          FatalError(e.what());
-        }
-      }
+  CLAY(CLAY_ID("MainWindow"), CLAY_RECTANGLE(background),
+       CLAY_LAYOUT({.layoutDirection = CLAY_TOP_TO_BOTTOM,
+                    .sizing = expandLayout,
+                    .padding = {16, 16},
+                    .childGap = 16})) {
+    CLAY(CLAY_ID("HeaderRow"),
+         CLAY_RECTANGLE({
+             .color = {40, 40, 40, 255},
+             .cornerRadius = 4,
+         }),
+         CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
+                      .sizing = {.width = CLAY_SIZING_GROW(0),
+                                 .height = CLAY_SIZING_FIXED(48)},
+                      .padding = {8, 8},
+                      .childGap = 32})) {
+      CLAY_TEXT(CLAY_STRING("Hi!!!"),
+                CLAY_TEXT_CONFIG({.fontId = Window::FONT_ID_BODY_16,
+                                  .fontSize = 32,
+                                  .textColor = {255, 255, 255, 255}}));
+      CLAY_TEXT(CLAY_STRING("Welcome..."),
+                CLAY_TEXT_CONFIG({.fontId = Window::FONT_ID_BODY_16,
+                                  .fontSize = 32,
+                                  .textColor = {255, 255, 255, 255}}));
     }
   }
-
-  ImGui::End();
-  ImGui::PopStyleVar();
 }
 
 void MainInstallerWindow::DetectGellyInstallation() {
@@ -144,9 +92,6 @@ void MainInstallerWindow::DetectGellyInstallation() {
   gellyInstallation = gelly::DetectGellyInstallation(*gmodPath);
 }
 
-void MainInstallerWindow::CenterPopup() {
-  ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(),
-                          ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-}
+void MainInstallerWindow::CenterPopup() {}
 
 } // namespace gelly

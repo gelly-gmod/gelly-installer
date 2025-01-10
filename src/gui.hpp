@@ -13,16 +13,15 @@ public:
   ~GUI();
 
   bool RunFrame();
-  void ProcessSDLEvent(const SDL_Event &ev);
 
 private:
   std::shared_ptr<Window> window;
   std::shared_ptr<Curl> curl;
   MainInstallerWindow mainInstallerWindow;
+  bool debugEnabled = false;
 
   void Render();
 
-  void InitializeImGUI() const;
-  void ShutdownImGUI();
+  void InitializeClay() const;
 };
 } // namespace gelly
