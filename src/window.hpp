@@ -4,10 +4,14 @@
 #undef CreateWindow
 
 namespace gelly {
+enum class FontId { Body16, Header32 };
+
+inline constexpr uint32_t FONT_ID(FontId id) {
+  return static_cast<uint32_t>(id);
+}
+
 class Window {
 public:
-  static constexpr auto FONT_ID_BODY_16 = 0;
-
   Window();
   ~Window();
 
@@ -32,6 +36,7 @@ private:
 
   bool ShouldClose() const;
   void ReinitializeClay();
+  static void RegisterFont(FontId &&font, const char *fontPath, int fontSize);
 };
 
 } // namespace gelly

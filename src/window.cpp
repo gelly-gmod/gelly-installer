@@ -22,11 +22,8 @@ Window::Window() {
   ReinitializeClay();
   Clay_SetMeasureTextFunction(Raylib_MeasureText);
   Clay_SetDebugModeEnabled(false);
-  Raylib_fonts[FONT_ID_BODY_16] = {
-      .font = LoadFontEx("Roboto-Medium.ttf", 32, 0, 250),
-      .fontId = FONT_ID_BODY_16};
-  SetTextureFilter(Raylib_fonts[FONT_ID_BODY_16].font.texture,
-                   TEXTURE_FILTER_BILINEAR);
+  RegisterFont(FontId::Body16, "Roboto-Medium.ttf", 16);
+  RegisterFont(FontId::Header32, "Roboto-Medium.ttf", 32);
 }
 
 void Window::RenderCommands(const Clay_RenderCommandArray &array) {
@@ -74,6 +71,14 @@ void Window::HandleClayErrors(Clay_ErrorData error) {
     std::cerr << "Unhandled error type" << std::endl;
     break;
   }
+}
+
+void Window::RegisterFont(FontId &&font, const char *fontPath, int fontSize) {
+  Raylib_fonts[FONT_ID(font)] = {
+      .font = LoadFontEx(fontPath, fontSize, nullptr, 250),
+      .fontId = FONT_ID(font)};
+  SetTextureFilter(Raylib_fonts[FONT_ID(font)].font.texture,
+                   TEXTURE_FILTER_POINT);
 }
 
 } // namespace gelly

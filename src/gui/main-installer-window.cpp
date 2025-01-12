@@ -1,5 +1,6 @@
 #include "main-installer-window.hpp"
 
+#include "helpers/clay-dynamic-string.hpp"
 #include "helpers/find-gmod-directory.hpp"
 #include "helpers/find-steam-directory.hpp"
 #include "helpers/launch-gmod.hpp"
@@ -16,7 +17,42 @@
 namespace gelly {
 namespace {
 constexpr auto HEADER = "Gelly Installer";
+constexpr auto ButtonTextConfig = Clay_TextElementConfig{
+    .fontId = FONT_ID(FontId::Body16),
+    .fontSize = 16,
+    .textColor = {255, 255, 255, 255},
+};
+
+template <typename Fn>
+void ButtonOnClickHandler(Clay_ElementId id, Clay_PointerData data,
+                          intptr_t userdata) {
+  if (data.state != CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
+    return;
+  }
+
+  auto function = reinterpret_cast<Fn *>(userdata);
+  (*function)();
 }
+
+template <typename T> void ButtonComponent(Clay_String text, T /*function*/) {
+  CLAY(CLAY_RECTANGLE({
+           .color = Clay_Hovered() ? (Clay_Color{90, 90, 90, 255})
+                                   : (Clay_Color{60, 60, 60, 255}),
+           .cornerRadius = 4,
+       }),
+       CLAY_LAYOUT({
+           .layoutDirection = CLAY_LEFT_TO_RIGHT,
+           .sizing = {.width = CLAY_SIZING_PERCENT(0.3),
+                      .height = CLAY_SIZING_FIT()},
+           .padding = {8, 8},
+           .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
+                              .y = CLAY_ALIGN_Y_CENTER},
+       }),
+       Clay_OnHover(ButtonOnClickHandler<T>, 1)) {
+    CLAY_TEXT(text, CLAY_TEXT_CONFIG(ButtonTextConfig));
+  }
+}
+} // namespace
 
 MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
                                          bool autoUpdate)
@@ -40,6 +76,9 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
     } catch (const std::exception &e) {
     }
   }
+
+  launchButtonString = helpers::CLAY_DYN_STRING(
+      std::format("Launch {}", gellyInstallation->version));
 }
 
 void MainInstallerWindow::Render() {
@@ -56,22 +95,56 @@ void MainInstallerWindow::Render() {
                     .childGap = 16})) {
     CLAY(CLAY_ID("HeaderRow"),
          CLAY_RECTANGLE({
-             .color = {40, 40, 40, 255},
+             .color = {90, 40, 40, 255},
              .cornerRadius = 4,
          }),
          CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
                       .sizing = {.width = CLAY_SIZING_GROW(0),
                                  .height = CLAY_SIZING_FIXED(48)},
                       .padding = {8, 8},
+                      .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
+                                         .y = CLAY_ALIGN_Y_CENTER},
                       .childGap = 32})) {
-      CLAY_TEXT(CLAY_STRING("Hi!!!"),
-                CLAY_TEXT_CONFIG({.fontId = Window::FONT_ID_BODY_16,
-                                  .fontSize = 32,
-                                  .textColor = {255, 255, 255, 255}}));
-      CLAY_TEXT(CLAY_STRING("Welcome..."),
-                CLAY_TEXT_CONFIG({.fontId = Window::FONT_ID_BODY_16,
-                                  .fontSize = 32,
-                                  .textColor = {255, 255, 255, 255}}));
+      CLAY_TEXT(CLAY_STRING("Gelly Installer"),
+                CLAY_TEXT_CONFIG({
+                    .fontId = FONT_ID(FontId::Header32),
+                    .fontSize = 32,
+                    .textColor = {255, 255, 255, 255},
+                }));
+    }
+    CLAY(CLAY_ID("Changelog"),
+         CLAY_RECTANGLE({
+             .color = {120, 120, 120, 255},
+             .cornerRadius = 4,
+         }),
+         CLAY_LAYOUT({
+             .layoutDirection = CLAY_TOP_TO_BOTTOM,
+             .sizing = expandLayout,
+             .padding = {8, 8},
+             .childGap = 8,
+         })) {
+      CLAY_TEXT(CLAY_STRING("Placeholder for the changelog text."),
+                CLAY_TEXT_CONFIG({
+                    .fontId = FONT_ID(FontId::Body16),
+                    .fontSize = 16,
+                    .textColor = {255, 255, 255, 255},
+                }));
+    }
+    CLAY(CLAY_ID("FooterRow"),
+         CLAY_RECTANGLE({
+             .color = {90, 40, 40, 255},
+             .cornerRadius = 4,
+         }),
+         CLAY_LAYOUT({
+             .layoutDirection = CLAY_LEFT_TO_RIGHT,
+             .sizing = {.width = CLAY_SIZING_GROW(0),
+                        .height = CLAY_SIZING_FIXED(48)},
+             .padding = {8, 8},
+             .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
+                                .y = CLAY_ALIGN_Y_CENTER},
+             .childGap = 32,
+         })) {
+      ButtonComponent(launchButtonString.string, [this] { LaunchGMod(); });
     }
   }
 }
