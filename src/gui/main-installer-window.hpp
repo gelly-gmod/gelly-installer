@@ -6,6 +6,7 @@
 #include "install/get-latest-gelly.hpp"
 
 #include <clay.h>
+#include <functional>
 
 namespace gelly {
 class MainInstallerWindow {
@@ -16,6 +17,8 @@ public:
   void Render();
 
 private:
+  using OnClickHandler = std::function<void()>;
+
   std::shared_ptr<Curl> curl;
   std::optional<LatestGellyInfo> latestGellyInfo;
   std::optional<GellyInstallation> gellyInstallation;
@@ -25,6 +28,10 @@ private:
   std::string fatalErrorMessage = "";
   helpers::ReleaseMarkdown releaseMarkdown;
   helpers::ClayDynamicString launchButtonString = {};
+  helpers::ClayDynamicString installButtonString = {};
+  helpers::ClayDynamicString versionString = {};
+  OnClickHandler onLaunchClick;
+  OnClickHandler onInstallClick;
 
   void FatalError(const std::string &message);
   void DetectGellyInstallation();
@@ -35,6 +42,9 @@ private:
   void HandleFatalErrorPopup();
 
   bool IsFatalErrorActive() const { return !fatalErrorMessage.empty(); }
+
+  void HandleOnLaunchClick();
+  void HandleOnInstallClick();
 };
 
 } // namespace gelly

@@ -12,7 +12,9 @@
 #include "window.hpp"
 
 #include <clay.h>
+#include <functional>
 #include <imgui.h>
+#include <iostream>
 
 namespace gelly {
 namespace {
@@ -23,18 +25,19 @@ constexpr auto ButtonTextConfig = Clay_TextElementConfig{
     .textColor = {255, 255, 255, 255},
 };
 
-template <typename Fn>
+MainInstallerWindow *mainInstallerWindow = nullptr;
+
 void ButtonOnClickHandler(Clay_ElementId id, Clay_PointerData data,
                           intptr_t userdata) {
   if (data.state != CLAY_POINTER_DATA_PRESSED_THIS_FRAME) {
     return;
   }
 
-  auto function = reinterpret_cast<Fn *>(userdata);
+  auto function = reinterpret_cast<std::function<void()> *>(userdata);
   (*function)();
 }
 
-template <typename T> void ButtonComponent(Clay_String text, T /*function*/) {
+void ButtonComponent(Clay_String text, const std::function<void()> &function) {
   CLAY(CLAY_RECTANGLE({
            .color = Clay_Hovered() ? (Clay_Color{90, 90, 90, 255})
                                    : (Clay_Color{60, 60, 60, 255}),
@@ -48,7 +51,8 @@ template <typename T> void ButtonComponent(Clay_String text, T /*function*/) {
            .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                               .y = CLAY_ALIGN_Y_CENTER},
        }),
-       Clay_OnHover(ButtonOnClickHandler<T>, 1)) {
+       Clay_OnHover(ButtonOnClickHandler,
+                    reinterpret_cast<intptr_t>(&function))) {
     CLAY_TEXT(text, CLAY_TEXT_CONFIG(ButtonTextConfig));
   }
 }
@@ -56,7 +60,12 @@ template <typename T> void ButtonComponent(Clay_String text, T /*function*/) {
 
 MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
                                          bool autoUpdate)
-    : curl(std::move(curl)), latestGellyInfo(GetLatestGellyInfo(this->curl)) {
+    : curl(std::move(curl)), latestGellyInfo(GetLatestGellyInfo(this->curl)),
+      onInstallClick(
+          std::bind(&MainInstallerWindow::HandleOnInstallClick, this)),
+      onLaunchClick(
+          std::bind(&MainInstallerWindow::HandleOnLaunchClick, this)) {
+  mainInstallerWindow = this;
   Log::Info("Latest Gelly version: {}",
             latestGellyInfo.has_value() ? latestGellyInfo->version : "N/A");
 
@@ -79,6 +88,10 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
 
   if (latestGellyInfo.has_value()) {
     releaseMarkdown = helpers::ReleaseMarkdown(latestGellyInfo->changelog);
+    installButtonString = helpers::CLAY_DYN_STRING(
+        std::format("Install {}", latestGellyInfo->version));
+    versionString =
+        helpers::CLAY_DYN_STRING(std::move(latestGellyInfo->version));
   }
 
   launchButtonString = helpers::CLAY_DYN_STRING(
@@ -91,6 +104,23 @@ void MainInstallerWindow::Render() {
 
   auto background = Clay_RectangleElementConfig{.color = {20, 20, 20, 255},
                                                 .cornerRadius = 8};
+
+  if (!latestGellyInfo.has_value()) {
+    CLAY(CLAY_ID("MainWindow"), CLAY_RECTANGLE(background),
+         CLAY_LAYOUT({.layoutDirection = CLAY_TOP_TO_BOTTOM,
+                      .sizing = expandLayout,
+                      .padding = {16, 16},
+                      .childGap = 16})) {
+      CLAY_TEXT(CLAY_STRING("Failed to fetch latest Gelly version"),
+                CLAY_TEXT_CONFIG({
+                    .fontId = FONT_ID(FontId::Header32),
+                    .fontSize = 32,
+                    .textColor = {255, 255, 255, 255},
+                }));
+    }
+
+    return;
+  }
 
   CLAY(CLAY_ID("MainWindow"), CLAY_RECTANGLE(background),
        CLAY_LAYOUT({.layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -127,6 +157,11 @@ void MainInstallerWindow::Render() {
              .padding = {8, 8},
              .childGap = 8,
          })) {
+      CLAY_TEXT(versionString.string, CLAY_TEXT_CONFIG({
+                                          .fontId = FONT_ID(FontId::Header32),
+                                          .fontSize = 32,
+                                          .textColor = {255, 100, 100, 255},
+                                      }));
       releaseMarkdown.Render();
     }
     CLAY(CLAY_ID("FooterRow"),
@@ -143,7 +178,13 @@ void MainInstallerWindow::Render() {
                                 .y = CLAY_ALIGN_Y_CENTER},
              .childGap = 32,
          })) {
-      ButtonComponent(launchButtonString.string, [this] { LaunchGMod(); });
+
+      if (gellyInstallation.has_value() &&
+          !gellyInstallation->IsOutdated(latestGellyInfo->version)) {
+        ButtonComponent(launchButtonString.string, onLaunchClick);
+      } else {
+        ButtonComponent(installButtonString.string, onInstallClick);
+      }
     }
   }
 }
@@ -165,5 +206,20 @@ void MainInstallerWindow::DetectGellyInstallation() {
 }
 
 void MainInstallerWindow::CenterPopup() {}
+
+void MainInstallerWindow::HandleOnInstallClick() {
+  if (!latestGellyInfo.has_value()) {
+    return;
+  }
+
+  try {
+    InstallGelly(*latestGellyInfo, curl, gellyInstallation);
+    DetectGellyInstallation();
+    LaunchGMod();
+  } catch (const std::exception &e) {
+  }
+}
+
+void MainInstallerWindow::HandleOnLaunchClick() { LaunchGMod(); }
 
 } // namespace gelly

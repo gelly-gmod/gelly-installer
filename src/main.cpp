@@ -1,3 +1,9 @@
+// clang-format off
+#undef NOUSER
+#include <windows.h>
+#include <shellapi.h>
+// clang-format on
+
 #include "app/config.hpp"
 #include "app/relocate-installation.hpp"
 #include "app/setup-uri-handler.hpp"
@@ -15,7 +21,19 @@ namespace {
 constexpr auto AUTO_UPDATE_ARG = "autoupdate";
 }
 
-int main(int argc, char *argv[]) {
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
+            int nCmdShow) {
+  auto argc = 0;
+  auto argvWideChar = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+  auto argv = new char *[argc];
+  for (auto i = 0; i < argc; ++i) {
+    const auto length = wcslen(argvWideChar[i]);
+    argv[i] = new char[length + 1];
+    wcstombs(argv[i], argvWideChar[i], length);
+    argv[i][length] = '\0';
+  }
+
 #ifndef _DEBUG
   if (!gelly::Config::IsURIHandlerRegistered() &&
       gelly::Config::IsAppInstalled()) {

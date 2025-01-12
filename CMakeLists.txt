@@ -18,9 +18,7 @@ add_subdirectory(vendor/raylib)
 find_package(CURL REQUIRED)
 find_program(RCEDIT rcedit-x64 rcedit)
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,/subsystem:windows -Wl,/entry:mainCRTStartup")
-
-add_executable(gelly_installer
+add_executable(gelly_installer WIN32
         src/main.cpp
         src/window.cpp
         src/window.hpp
