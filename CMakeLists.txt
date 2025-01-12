@@ -65,6 +65,8 @@ add_executable(gelly_installer
         src/helpers/detect-elevation.cpp
         src/helpers/detect-elevation.hpp
         src/helpers/clay-dynamic-string.hpp
+        src/helpers/release-markdown.cpp
+        src/helpers/release-markdown.hpp
 )
 
 target_link_libraries(gelly_installer

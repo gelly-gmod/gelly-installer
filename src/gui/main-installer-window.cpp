@@ -77,6 +77,10 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
     }
   }
 
+  if (latestGellyInfo.has_value()) {
+    releaseMarkdown = helpers::ReleaseMarkdown(latestGellyInfo->changelog);
+  }
+
   launchButtonString = helpers::CLAY_DYN_STRING(
       std::format("Launch {}", gellyInstallation->version));
 }
@@ -123,12 +127,7 @@ void MainInstallerWindow::Render() {
              .padding = {8, 8},
              .childGap = 8,
          })) {
-      CLAY_TEXT(CLAY_STRING("Placeholder for the changelog text."),
-                CLAY_TEXT_CONFIG({
-                    .fontId = FONT_ID(FontId::Body16),
-                    .fontSize = 16,
-                    .textColor = {255, 255, 255, 255},
-                }));
+      releaseMarkdown.Render();
     }
     CLAY(CLAY_ID("FooterRow"),
          CLAY_RECTANGLE({
