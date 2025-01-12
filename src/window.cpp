@@ -78,7 +78,7 @@ void Window::RegisterFont(FontId &&font, const char *fontPath, int fontSize) {
       .font = LoadFontEx(fontPath, fontSize, nullptr, 250),
       .fontId = FONT_ID(font)};
   SetTextureFilter(Raylib_fonts[FONT_ID(font)].font.texture,
-                   TEXTURE_FILTER_POINT);
+                   TEXTURE_FILTER_BILINEAR);
 }
 
 } // namespace gelly

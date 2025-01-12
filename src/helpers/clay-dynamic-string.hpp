@@ -1,5 +1,6 @@
 #pragma once
 #include <clay.h>
+#include <vector>
 #include <string>
 
 namespace gelly::helpers {

@@ -65,6 +65,8 @@ add_executable(gelly_installer WIN32
         src/helpers/clay-dynamic-string.hpp
         src/helpers/release-markdown.cpp
         src/helpers/release-markdown.hpp
+        src/gui/popups/popup.cpp
+        src/gui/popups/popup.hpp
 )
 
 target_link_libraries(gelly_installer
