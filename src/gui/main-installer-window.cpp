@@ -37,7 +37,8 @@ void ButtonOnClickHandler(Clay_ElementId id, Clay_PointerData data,
   (*function)();
 }
 
-void ButtonComponent(Clay_String text, const std::function<void()> &function) {
+void ButtonComponent(Clay_String text, const std::function<void()> &function,
+                     float widthPercent = 0.3, bool expandHeight = true) {
   CLAY(CLAY_RECTANGLE({
            .color = Clay_Hovered() ? (Clay_Color{90, 90, 90, 255})
                                    : (Clay_Color{60, 60, 60, 255}),
@@ -45,8 +46,9 @@ void ButtonComponent(Clay_String text, const std::function<void()> &function) {
        }),
        CLAY_LAYOUT({
            .layoutDirection = CLAY_LEFT_TO_RIGHT,
-           .sizing = {.width = CLAY_SIZING_PERCENT(0.3),
-                      .height = CLAY_SIZING_FIT()},
+           .sizing = {.width = CLAY_SIZING_PERCENT(widthPercent),
+                      .height = expandHeight ? CLAY_SIZING_GROW(0)
+                                             : CLAY_SIZING_FIT()},
            .padding = {8, 8},
            .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                               .y = CLAY_ALIGN_Y_CENTER},
@@ -56,15 +58,30 @@ void ButtonComponent(Clay_String text, const std::function<void()> &function) {
     CLAY_TEXT(text, CLAY_TEXT_CONFIG(ButtonTextConfig));
   }
 }
+
+void FullWidthButtonComponent(Clay_String text,
+                              const std::function<void()> &function) {
+  ButtonComponent(text, function, 1, false);
+}
+
+/**
+ * Does nothing but takes up space, useful for replicating auto-margin behavior
+ */
+void AutoGrowComponent() {
+  CLAY(CLAY_LAYOUT({
+      .layoutDirection = CLAY_LEFT_TO_RIGHT,
+      .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIT()},
+      .padding = {0, 0},
+  })){};
+}
 } // namespace
 
 MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
                                          bool autoUpdate)
     : curl(std::move(curl)), latestGellyInfo(GetLatestGellyInfo(this->curl)),
-      onInstallClick(
-          std::bind(&MainInstallerWindow::HandleOnInstallClick, this)),
-      onLaunchClick(
-          std::bind(&MainInstallerWindow::HandleOnLaunchClick, this)) {
+      onInstallClick([this] { HandleOnInstallClick(); }),
+      onLaunchClick([this] { HandleOnLaunchClick(); }),
+      onUninstallClick([this] { HandleOnUninstallClick(); }) {
   mainInstallerWindow = this;
   Log::Info("Latest Gelly version: {}",
             latestGellyInfo.has_value() ? latestGellyInfo->version : "N/A");
@@ -92,6 +109,13 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
         std::format("Install {}", latestGellyInfo->version));
     versionString =
         helpers::CLAY_DYN_STRING(std::move(latestGellyInfo->version));
+  }
+
+  if (gellyInstallation.has_value()) {
+    usingVersionString = helpers::CLAY_DYN_STRING(
+        std::format("Using version {}", gellyInstallation->version));
+  } else {
+    usingVersionString = helpers::CLAY_DYN_STRING("Not installed");
   }
 
   launchButtonString = helpers::CLAY_DYN_STRING(
@@ -172,18 +196,43 @@ void MainInstallerWindow::Render() {
          CLAY_LAYOUT({
              .layoutDirection = CLAY_LEFT_TO_RIGHT,
              .sizing = {.width = CLAY_SIZING_GROW(0),
-                        .height = CLAY_SIZING_FIXED(48)},
+                        .height = CLAY_SIZING_FIXED(64)},
              .padding = {8, 8},
              .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                                 .y = CLAY_ALIGN_Y_CENTER},
              .childGap = 32,
          })) {
 
+      AutoGrowComponent();
+
       if (gellyInstallation.has_value() &&
           !gellyInstallation->IsOutdated(latestGellyInfo->version)) {
         ButtonComponent(launchButtonString.string, onLaunchClick);
       } else {
         ButtonComponent(installButtonString.string, onInstallClick);
+      }
+
+      AutoGrowComponent();
+
+      CLAY(CLAY_ID("UninstallButton"),
+           CLAY_RECTANGLE({
+               .color = {90, 40, 40, 255},
+               .cornerRadius = 4,
+           }),
+           CLAY_LAYOUT({
+               .layoutDirection = CLAY_TOP_TO_BOTTOM,
+               .sizing = {.width = CLAY_SIZING_FIT(),
+                          .height = CLAY_SIZING_FIT()},
+               .padding = {0, 0},
+               .childGap = 4,
+           })) {
+        CLAY_TEXT(usingVersionString.string,
+                  CLAY_TEXT_CONFIG({
+                      .fontId = FONT_ID(FontId::Body16),
+                      .fontSize = 16,
+                      .textColor = {255, 255, 255, 255},
+                  }));
+        FullWidthButtonComponent(CLAY_STRING("Uninstall"), onUninstallClick);
       }
     }
   }
@@ -221,5 +270,17 @@ void MainInstallerWindow::HandleOnInstallClick() {
 }
 
 void MainInstallerWindow::HandleOnLaunchClick() { LaunchGMod(); }
+
+void MainInstallerWindow::HandleOnUninstallClick() {
+  if (!gellyInstallation.has_value()) {
+    return;
+  }
+
+  try {
+    UninstallGelly(*gellyInstallation);
+    DetectGellyInstallation();
+  } catch (const std::exception &e) {
+  }
+}
 
 } // namespace gelly

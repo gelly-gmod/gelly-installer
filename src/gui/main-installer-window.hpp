@@ -30,8 +30,11 @@ private:
   helpers::ClayDynamicString launchButtonString = {};
   helpers::ClayDynamicString installButtonString = {};
   helpers::ClayDynamicString versionString = {};
+  helpers::ClayDynamicString usingVersionString = {};
+
   OnClickHandler onLaunchClick;
   OnClickHandler onInstallClick;
+  OnClickHandler onUninstallClick;
 
   void FatalError(const std::string &message);
   void DetectGellyInstallation();
@@ -45,6 +48,7 @@ private:
 
   void HandleOnLaunchClick();
   void HandleOnInstallClick();
+  void HandleOnUninstallClick();
 };
 
 } // namespace gelly
