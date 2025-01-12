@@ -22,8 +22,8 @@ Window::Window() {
   ReinitializeClay();
   Clay_SetMeasureTextFunction(Raylib_MeasureText);
   Clay_SetDebugModeEnabled(false);
-  RegisterFont(FontId::Body16, "Roboto-Medium.ttf", 16);
-  RegisterFont(FontId::Header32, "Roboto-Medium.ttf", 32);
+  RegisterFont(FontId::Body16, "Poppins-Medium.ttf", 16);
+  RegisterFont(FontId::Header32, "Poppins-Bold.ttf", 32);
 }
 
 void Window::RenderCommands(const Clay_RenderCommandArray &array) {
