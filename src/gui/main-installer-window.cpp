@@ -25,6 +25,12 @@ constexpr auto ButtonTextConfig = Clay_TextElementConfig{
     .textColor = {255, 255, 255, 255},
 };
 
+constexpr auto DisabledButtonTextConfig = Clay_TextElementConfig{
+    .fontId = FONT_ID(FontId::Body16),
+    .fontSize = 16,
+    .textColor = {128, 128, 128, 255},
+};
+
 MainInstallerWindow *mainInstallerWindow = nullptr;
 
 void ButtonOnClickHandler(Clay_ElementId id, Clay_PointerData data,
@@ -37,11 +43,21 @@ void ButtonOnClickHandler(Clay_ElementId id, Clay_PointerData data,
   (*function)();
 }
 
-void ButtonComponent(Clay_String text, const std::function<void()> &function,
-                     float widthPercent = 0.3, bool expandHeight = true) {
+struct ButtonComponentProps {
+  Clay_String text;
+  std::function<void()> *onClick;
+  bool disabled = false;
+  Clay_Color color = {60, 60, 60, 255};
+  Clay_Color hoverColor = {90, 90, 90, 255};
+  float widthPercent = 0.3;
+  bool expandHeight = true;
+};
+
+void ButtonComponent(ButtonComponentProps props) {
+  auto [text, function, disabled, color, hoverColor, widthPercent,
+        expandHeight] = props;
   CLAY(CLAY_RECTANGLE({
-           .color = Clay_Hovered() ? (Clay_Color{90, 90, 90, 255})
-                                   : (Clay_Color{60, 60, 60, 255}),
+           .color = Clay_Hovered() && !disabled ? hoverColor : color,
            .cornerRadius = 4,
        }),
        CLAY_LAYOUT({
@@ -53,15 +69,20 @@ void ButtonComponent(Clay_String text, const std::function<void()> &function,
            .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                               .y = CLAY_ALIGN_Y_CENTER},
        }),
-       Clay_OnHover(ButtonOnClickHandler,
-                    reinterpret_cast<intptr_t>(&function))) {
-    CLAY_TEXT(text, CLAY_TEXT_CONFIG(ButtonTextConfig));
+       Clay_OnHover(disabled ? nullptr : ButtonOnClickHandler,
+                    reinterpret_cast<intptr_t>(function))) {
+    CLAY_TEXT(text, CLAY_TEXT_CONFIG(disabled ? DisabledButtonTextConfig
+                                              : ButtonTextConfig));
   }
 }
 
-void FullWidthButtonComponent(Clay_String text,
-                              const std::function<void()> &function) {
-  ButtonComponent(text, function, 1, false);
+void FullWidthButtonComponent(Clay_String text, std::function<void()> *function,
+                              bool disabled) {
+  ButtonComponent({.text = text,
+                   .onClick = function,
+                   .disabled = disabled,
+                   .widthPercent = 1,
+                   .expandHeight = false});
 }
 
 /**
@@ -110,23 +131,13 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
     versionString =
         helpers::CLAY_DYN_STRING(std::move(latestGellyInfo->version));
   }
-
-  if (gellyInstallation.has_value()) {
-    usingVersionString = helpers::CLAY_DYN_STRING(
-        std::format("Using version {}", gellyInstallation->version));
-  } else {
-    usingVersionString = helpers::CLAY_DYN_STRING("Not installed");
-  }
-
-  launchButtonString = helpers::CLAY_DYN_STRING(
-      std::format("Launch {}", gellyInstallation->version));
 }
 
 void MainInstallerWindow::Render() {
   auto expandLayout =
       Clay_Sizing{.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0)};
 
-  auto background = Clay_RectangleElementConfig{.color = {20, 20, 20, 255},
+  auto background = Clay_RectangleElementConfig{.color = {15, 15, 15, 255},
                                                 .cornerRadius = 8};
 
   if (!latestGellyInfo.has_value()) {
@@ -153,7 +164,7 @@ void MainInstallerWindow::Render() {
                     .childGap = 16})) {
     CLAY(CLAY_ID("HeaderRow"),
          CLAY_RECTANGLE({
-             .color = {90, 40, 40, 255},
+             .color = {30, 15, 15, 255},
              .cornerRadius = 4,
          }),
          CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
@@ -172,7 +183,7 @@ void MainInstallerWindow::Render() {
     }
     CLAY(CLAY_ID("Changelog"),
          CLAY_RECTANGLE({
-             .color = {120, 120, 120, 255},
+             .color = {20, 20, 20, 255},
              .cornerRadius = 4,
          }),
          CLAY_LAYOUT({
@@ -190,7 +201,7 @@ void MainInstallerWindow::Render() {
     }
     CLAY(CLAY_ID("FooterRow"),
          CLAY_RECTANGLE({
-             .color = {90, 40, 40, 255},
+             .color = {30, 15, 15, 255},
              .cornerRadius = 4,
          }),
          CLAY_LAYOUT({
@@ -207,24 +218,32 @@ void MainInstallerWindow::Render() {
 
       if (gellyInstallation.has_value() &&
           !gellyInstallation->IsOutdated(latestGellyInfo->version)) {
-        ButtonComponent(launchButtonString.string, onLaunchClick);
+        ButtonComponent({.text = launchButtonString.string,
+                         .color = {35, 117, 26, 255},
+                         .hoverColor = {50, 153, 38, 255},
+                         .onClick = &onLaunchClick});
       } else {
-        ButtonComponent(installButtonString.string, onInstallClick);
+        ButtonComponent({.text = installButtonString.string,
+                         .color = {35, 117, 26, 255},
+                         .hoverColor = {50, 153, 38, 255},
+                         .onClick = &onInstallClick});
       }
 
       AutoGrowComponent();
 
       CLAY(CLAY_ID("UninstallButton"),
            CLAY_RECTANGLE({
-               .color = {90, 40, 40, 255},
+               .color = {30, 15, 15, 255},
                .cornerRadius = 4,
            }),
            CLAY_LAYOUT({
                .layoutDirection = CLAY_TOP_TO_BOTTOM,
-               .sizing = {.width = CLAY_SIZING_FIT(),
+               .sizing = {.width = CLAY_SIZING_FIXED(128),
                           .height = CLAY_SIZING_FIT()},
                .padding = {0, 0},
                .childGap = 4,
+               .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
+                                  .y = CLAY_ALIGN_Y_CENTER},
            })) {
         CLAY_TEXT(usingVersionString.string,
                   CLAY_TEXT_CONFIG({
@@ -232,7 +251,8 @@ void MainInstallerWindow::Render() {
                       .fontSize = 16,
                       .textColor = {255, 255, 255, 255},
                   }));
-        FullWidthButtonComponent(CLAY_STRING("Uninstall"), onUninstallClick);
+        FullWidthButtonComponent(CLAY_STRING("Uninstall"), &onUninstallClick,
+                                 !gellyInstallation.has_value());
       }
     }
   }
@@ -252,6 +272,15 @@ void MainInstallerWindow::DetectGellyInstallation() {
   Log::Info("Garry's Mod directory: {}", gmodPath->string());
   Log::Info("Steam directory: {}", steamPath->string());
   gellyInstallation = gelly::DetectGellyInstallation(*gmodPath);
+  if (gellyInstallation.has_value()) {
+    usingVersionString = helpers::CLAY_DYN_STRING(
+        std::format("Using version {}", gellyInstallation->version));
+    launchButtonString = helpers::CLAY_DYN_STRING(
+        std::format("Launch {}", gellyInstallation->version));
+  } else {
+    usingVersionString = helpers::CLAY_DYN_STRING("Not installed");
+    launchButtonString = helpers::CLAY_DYN_STRING("Launch");
+  }
 }
 
 void MainInstallerWindow::CenterPopup() {}
@@ -264,7 +293,6 @@ void MainInstallerWindow::HandleOnInstallClick() {
   try {
     InstallGelly(*latestGellyInfo, curl, gellyInstallation);
     DetectGellyInstallation();
-    LaunchGMod();
   } catch (const std::exception &e) {
   }
 }
