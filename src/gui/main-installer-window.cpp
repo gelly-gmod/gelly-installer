@@ -144,8 +144,8 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
     releaseMarkdown = helpers::ReleaseMarkdown(latestGellyInfo->changelog);
     installButtonString = helpers::CLAY_DYN_STRING(
         std::format("Install {}", latestGellyInfo->version));
-    versionString =
-        helpers::CLAY_DYN_STRING(std::move(latestGellyInfo->version));
+    versionString = helpers::CLAY_DYN_STRING(
+        std::format("Gelly {}", latestGellyInfo->version));
   }
 }
 
@@ -209,9 +209,9 @@ void MainInstallerWindow::Render() {
              .childGap = 8,
          })) {
       CLAY_TEXT(versionString.string, CLAY_TEXT_CONFIG({
-                                          .fontId = FONT_ID(FontId::Header32),
-                                          .fontSize = 32,
-                                          .textColor = {255, 100, 100, 255},
+                                          .fontId = FONT_ID(FontId::Version48),
+                                          .fontSize = 48,
+                                          .textColor = {255, 255, 255, 255},
                                       }));
       releaseMarkdown.Render();
     }

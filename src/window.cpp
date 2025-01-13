@@ -26,6 +26,7 @@ Window::Window() {
   RegisterFont(FontId::Header32, "Poppins-Bold.ttf", 32);
   RegisterFont(FontId::Button30, "Poppins-Bold.ttf", 30);
   RegisterFont(FontId::Button24, "Poppins-Bold.ttf", 24);
+  RegisterFont(FontId::Version48, "Poppins-Bold.ttf", 48);
 }
 
 void Window::RenderCommands(const Clay_RenderCommandArray &array) {
