@@ -20,14 +20,26 @@ namespace gelly {
 namespace {
 constexpr auto HEADER = "Gelly Installer";
 constexpr auto ButtonTextConfig = Clay_TextElementConfig{
-    .fontId = FONT_ID(FontId::Body16),
-    .fontSize = 16,
+    .fontId = FONT_ID(FontId::Button30),
+    .fontSize = 30,
     .textColor = {255, 255, 255, 255},
 };
 
 constexpr auto DisabledButtonTextConfig = Clay_TextElementConfig{
-    .fontId = FONT_ID(FontId::Body16),
-    .fontSize = 16,
+    .fontId = FONT_ID(FontId::Button30),
+    .fontSize = 30,
+    .textColor = {128, 128, 128, 255},
+};
+
+constexpr auto FWButtonConfig = Clay_TextElementConfig{
+    .fontId = FONT_ID(FontId::Button24),
+    .fontSize = 24,
+    .textColor = {255, 255, 255, 255},
+};
+
+constexpr auto DisabledFWButtonConfig = Clay_TextElementConfig{
+    .fontId = FONT_ID(FontId::Button24),
+    .fontSize = 24,
     .textColor = {128, 128, 128, 255},
 };
 
@@ -49,13 +61,15 @@ struct ButtonComponentProps {
   bool disabled = false;
   Clay_Color color = {60, 60, 60, 255};
   Clay_Color hoverColor = {90, 90, 90, 255};
+  Clay_TextElementConfig textConfig = ButtonTextConfig;
+  Clay_TextElementConfig disabledTextConfig = DisabledButtonTextConfig;
   float widthPercent = 0.3;
   bool expandHeight = true;
 };
 
 void ButtonComponent(ButtonComponentProps props) {
-  auto [text, function, disabled, color, hoverColor, widthPercent,
-        expandHeight] = props;
+  auto [text, function, disabled, color, hoverColor, textConfig,
+        disabledTextConfig, widthPercent, expandHeight] = props;
   CLAY(CLAY_RECTANGLE({
            .color = Clay_Hovered() && !disabled ? hoverColor : color,
            .cornerRadius = 4,
@@ -71,8 +85,8 @@ void ButtonComponent(ButtonComponentProps props) {
        }),
        Clay_OnHover(disabled ? nullptr : ButtonOnClickHandler,
                     reinterpret_cast<intptr_t>(function))) {
-    CLAY_TEXT(text, CLAY_TEXT_CONFIG(disabled ? DisabledButtonTextConfig
-                                              : ButtonTextConfig));
+    CLAY_TEXT(text,
+              CLAY_TEXT_CONFIG(disabled ? disabledTextConfig : textConfig));
   }
 }
 
@@ -81,6 +95,8 @@ void FullWidthButtonComponent(Clay_String text, std::function<void()> *function,
   ButtonComponent({.text = text,
                    .onClick = function,
                    .disabled = disabled,
+                   .textConfig = FWButtonConfig,
+                   .disabledTextConfig = DisabledFWButtonConfig,
                    .widthPercent = 1,
                    .expandHeight = false});
 }

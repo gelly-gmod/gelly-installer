@@ -4,7 +4,7 @@
 #undef CreateWindow
 
 namespace gelly {
-enum class FontId { Body16, Header32 };
+enum class FontId { Body16, Header32, Button30, Button24 };
 
 inline constexpr uint32_t FONT_ID(FontId id) {
   return static_cast<uint32_t>(id);
