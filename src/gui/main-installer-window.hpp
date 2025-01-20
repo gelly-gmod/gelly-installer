@@ -10,7 +10,8 @@
 namespace gelly {
 class MainInstallerWindow {
 public:
-  MainInstallerWindow(std::shared_ptr<Curl> curl, bool autoUpdate);
+  MainInstallerWindow(std::shared_ptr<Window> window,
+                      std::shared_ptr<Curl> curl, bool autoUpdate);
   ~MainInstallerWindow() = default;
 
   void Render();
@@ -19,6 +20,7 @@ private:
   using OnClickHandler = std::function<void()>;
 
   std::shared_ptr<Curl> curl;
+  std::shared_ptr<Window> window;
   std::optional<LatestGellyInfo> latestGellyInfo;
   std::optional<GellyInstallation> gellyInstallation;
 
@@ -34,6 +36,8 @@ private:
   OnClickHandler onLaunchClick;
   OnClickHandler onInstallClick;
   OnClickHandler onUninstallClick;
+
+  SDL_Texture *gellyLogo = nullptr;
 
   void FatalError(const std::string &message);
   void DetectGellyInstallation();

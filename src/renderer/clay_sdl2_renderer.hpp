@@ -20,4 +20,6 @@ void Clay_SDL2_Render(SDL_Renderer *renderer,
 
 bool RegisterFont(const char *fontPath, int fontSize, uint32_t fontId);
 
+SDL_Texture *LoadTexture(SDL_Renderer *renderer, const char *path);
+
 } // namespace gelly::renderer

@@ -17,6 +17,7 @@ public:
 private:
   std::shared_ptr<Window> window;
   std::shared_ptr<Curl> curl;
+
   MainInstallerWindow mainInstallerWindow;
   bool debugEnabled = false;
   UINT64 lastCounter = 0;

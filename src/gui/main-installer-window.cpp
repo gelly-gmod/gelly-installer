@@ -9,6 +9,7 @@
 #include "install/install-gelly.hpp"
 #include "install/uninstall-gelly.hpp"
 #include "logging/log.hpp"
+#include "renderer/clay_sdl2_renderer.hpp"
 #include "window.hpp"
 
 #include <clay.h>
@@ -113,11 +114,13 @@ void AutoGrowComponent() {
 }
 } // namespace
 
-MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
+MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Window> window,
+                                         std::shared_ptr<Curl> curl,
                                          bool autoUpdate)
-    : curl(std::move(curl)), latestGellyInfo(GetLatestGellyInfo(this->curl)),
-      onInstallClick([this] { HandleOnInstallClick(); }),
+    : curl(std::move(curl)), window((window)),
+      latestGellyInfo(GetLatestGellyInfo(this->curl)),
       onLaunchClick([this] { HandleOnLaunchClick(); }),
+      onInstallClick([this] { HandleOnInstallClick(); }),
       onUninstallClick([this] { HandleOnUninstallClick(); }) {
   mainInstallerWindow = this;
   Log::Info("Latest Gelly version: {}",
@@ -147,6 +150,8 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Curl> curl,
     versionString = helpers::CLAY_DYN_STRING(
         std::format("Gelly {}", latestGellyInfo->version));
   }
+
+  gellyLogo = renderer::LoadTexture(window->GetRenderer(), "gelly-logo.png");
 }
 
 void MainInstallerWindow::Render() {
@@ -186,12 +191,21 @@ void MainInstallerWindow::Render() {
                                  .height = CLAY_SIZING_GROW(0)},
                       .padding = {16, 16},
                       .childGap = 16})) {
-      CLAY_TEXT(CLAY_STRING("Hello from new renderer!"),
-                CLAY_TEXT_CONFIG({
-                    .fontId = FONT_ID(FontId::Header32),
-                    .fontSize = 32,
-                    .textColor = {255, 255, 255, 255},
-                }));
+      CLAY(CLAY_ID("GellyLogo"),
+           CLAY_LAYOUT({
+               .layoutDirection = CLAY_TOP_TO_BOTTOM,
+               .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
+                                  .y = CLAY_ALIGN_Y_CENTER},
+               .sizing = {.width = CLAY_SIZING_FIXED(512),
+                          .height = CLAY_SIZING_FIXED(512)},
+           }),
+           CLAY_IMAGE(
+               {.imageData = gellyLogo, .sourceDimensions = {1024, 1024}})) {}
+      CLAY_TEXT(CLAY_STRING("Hi hi"), CLAY_TEXT_CONFIG({
+                                          .fontId = FONT_ID(FontId::Header32),
+                                          .fontSize = 32,
+                                          .textColor = {255, 255, 255, 255},
+                                      }));
     }
   }
 }
@@ -248,5 +262,4 @@ void MainInstallerWindow::HandleOnUninstallClick() {
   } catch (const std::exception &e) {
   }
 }
-
 } // namespace gelly

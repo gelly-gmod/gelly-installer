@@ -1,5 +1,6 @@
 #include "clay_sdl2_renderer.hpp"
 
+#include <SDL_image.h>
 #include <array>
 #include <cstdio>
 #include <cstdlib>
@@ -39,6 +40,10 @@ void Clay_SDL2_Render(SDL_Renderer *renderer,
       Clay_RectangleElementConfig *config =
           renderCommand->config.rectangleElementConfig;
       Clay_Color color = config->color;
+      if (color.a < 255) {
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+      }
+
       SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
       SDL_FRect rect = (SDL_FRect){
           .x = boundingBox.x,
@@ -47,14 +52,15 @@ void Clay_SDL2_Render(SDL_Renderer *renderer,
           .h = boundingBox.height,
       };
       SDL_RenderFillRectF(renderer, &rect);
+      SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
       break;
     }
     case CLAY_RENDER_COMMAND_TYPE_BORDER: {
       Clay_BorderElementConfig *config =
           renderCommand->config.borderElementConfig;
 
-      const auto renderBorder = [&](const Clay_Border &border, float x1, float y1,
-                                    float x2, float y2) {
+      const auto renderBorder = [&](const Clay_Border &border, float x1,
+                                    float y1, float x2, float y2) {
         const auto red = static_cast<Uint8>(border.color.r);
         const auto green = static_cast<Uint8>(border.color.g);
         const auto blue = static_cast<Uint8>(border.color.b);
@@ -87,6 +93,25 @@ void Clay_SDL2_Render(SDL_Renderer *renderer,
                      boundingBox.y + boundingBox.height);
       }
 
+      break;
+    }
+    case CLAY_RENDER_COMMAND_TYPE_IMAGE: {
+      Clay_ImageElementConfig *config =
+          renderCommand->config.imageElementConfig;
+      auto *texture = static_cast<SDL_Texture *>(config->imageData);
+      if (!texture) {
+        fprintf(stderr, "Error: image texture is null\n");
+        exit(1);
+      }
+
+      SDL_FRect destination = (SDL_FRect){
+          .x = boundingBox.x,
+          .y = boundingBox.y,
+          .w = boundingBox.width,
+          .h = boundingBox.height,
+      };
+
+      SDL_RenderCopyF(renderer, texture, nullptr, &destination);
       break;
     }
     case CLAY_RENDER_COMMAND_TYPE_TEXT: {
@@ -149,6 +174,10 @@ bool RegisterFont(const char *fontPath, int fontSize, uint32_t fontId) {
 
   SDL2_fonts[fontId] = font;
   return font.font != nullptr;
+}
+
+SDL_Texture *LoadTexture(SDL_Renderer *renderer, const char *imagePath) {
+  return SDL_CreateTextureFromSurface(renderer, IMG_Load(imagePath));
 }
 
 } // namespace gelly::renderer

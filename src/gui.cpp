@@ -7,8 +7,8 @@
 namespace gelly {
 GUI::GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl,
          bool autoUpdate)
-    : window(std::move(window)), curl(std::move(curl)),
-      mainInstallerWindow(curl, autoUpdate) {}
+    : window(window), curl(curl),
+      mainInstallerWindow(window, curl, autoUpdate) {}
 
 GUI::~GUI() {}
 
