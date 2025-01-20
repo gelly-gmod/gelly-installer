@@ -1,7 +1,13 @@
 #define CLAY_IMPLEMENTATION
 #include "window.hpp"
 #include "clay.h"
-#include "renderers/raylib/clay_renderer_raylib.c"
+#include "logging/log.hpp"
+#include "renderer/clay_sdl2_renderer.hpp"
+
+#include <SDL.h>
+#include <SDL_image.h>
+#include <SDL_ttf.h>
+
 #include <cstdio>
 #include <iostream>
 #include <ostream>
@@ -16,11 +22,32 @@ constexpr auto WINDOW_TITLE = "Gelly Installer";
 bool Window::reinitializeClay = false;
 
 Window::Window() {
-  Clay_Raylib_Initialize(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE,
-                         FLAG_WINDOW_RESIZABLE | FLAG_WINDOW_HIGHDPI |
-                             FLAG_MSAA_4X_HINT | FLAG_VSYNC_HINT);
+  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    Log::Error("Failed to initialize SDL: {}", SDL_GetError());
+    return;
+  }
+
+  if (TTF_Init() != 0) {
+    Log::Error("Failed to initialize SDL_ttf: {}", TTF_GetError());
+    return;
+  }
+
+  if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
+    Log::Error("Failed to initialize SDL_image: {}", IMG_GetError());
+    return;
+  }
+
+  if (SDL_CreateWindowAndRenderer(WINDOW_WIDTH, WINDOW_HEIGHT, 0, &window,
+                                  &renderer) != 0) {
+    Log::Error("Failed to create window and renderer: {}", SDL_GetError());
+    return;
+  }
+
+  SDL_SetWindowTitle(window, WINDOW_TITLE);
+
   ReinitializeClay();
-  Clay_SetMeasureTextFunction(Raylib_MeasureText);
+  Clay_SetMeasureTextFunction(renderer::SDL2_MeasureText);
+
   Clay_SetDebugModeEnabled(false);
   RegisterFont(FontId::Body16, "Poppins-Medium.ttf", 16);
   RegisterFont(FontId::Header32, "Poppins-Bold.ttf", 32);
@@ -30,7 +57,12 @@ Window::Window() {
 }
 
 void Window::RenderCommands(const Clay_RenderCommandArray &array) {
-  Clay_Raylib_Render(array);
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+
+  renderer::Clay_SDL2_Render(renderer, array);
+
+  SDL_RenderPresent(renderer);
 }
 
 Window::~Window() {
@@ -38,19 +70,24 @@ Window::~Window() {
   // or something like that in Clay.
 }
 
-bool Window::ShouldClose() const { return WindowShouldClose(); }
+bool Window::ShouldClose() const { return false; }
 
 void Window::ReinitializeClay() {
   auto requiredMemory = Clay_MinMemorySize();
   auto arena = Clay_CreateArenaWithCapacityAndMemory(requiredMemory,
                                                      malloc(requiredMemory));
+
+  int screenWidth = 0;
+  int screenHeight = 0;
+  SDL_GetWindowSize(window, &screenWidth, &screenHeight);
+
   Clay_Initialize(arena,
-                  {.width = static_cast<float>(GetScreenWidth()),
-                   .height = static_cast<float>(GetScreenHeight())},
+                  {.width = static_cast<float>(screenWidth),
+                   .height = static_cast<float>(screenHeight)},
                   static_cast<Clay_ErrorHandler>(HandleClayErrors));
   Clay_GetCurrentContext()->debugSelectedElementId = 0;
 
-  Clay_SetMeasureTextFunction(Raylib_MeasureText);
+  Clay_SetMeasureTextFunction(renderer::SDL2_MeasureText);
   Clay_SetDebugModeEnabled(false);
   Clay_SetExternalScrollHandlingEnabled(false);
 
@@ -77,11 +114,11 @@ void Window::HandleClayErrors(Clay_ErrorData error) {
 }
 
 void Window::RegisterFont(FontId &&font, const char *fontPath, int fontSize) {
-  Raylib_fonts[FONT_ID(font)] = {
-      .font = LoadFontEx(fontPath, fontSize, nullptr, 250),
-      .fontId = FONT_ID(font)};
-  SetTextureFilter(Raylib_fonts[FONT_ID(font)].font.texture,
-                   TEXTURE_FILTER_BILINEAR);
+  if (!renderer::RegisterFont(fontPath, fontSize, FONT_ID(font))) {
+    Log::Error("Failed to load font {}: {}", fontPath, TTF_GetError());
+  } else {
+    Log::Info("Loaded font {} at {}px", fontPath, fontSize);
+  }
 }
 
 } // namespace gelly

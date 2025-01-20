@@ -5,7 +5,6 @@
 #include "install/detect-gelly-installation.hpp"
 #include "install/get-latest-gelly.hpp"
 
-#include <clay.h>
 #include <functional>
 
 namespace gelly {

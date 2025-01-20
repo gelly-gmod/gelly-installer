@@ -13,7 +13,21 @@ project(gelly_installer)
 add_subdirectory(vendor/VDFParser)
 add_subdirectory(vendor/json)
 add_subdirectory(vendor/libzip)
-add_subdirectory(vendor/raylib)
+
+add_subdirectory(vendor/freetype)
+set(FREETYPE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/vendor/freetype/include)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(FREETYPE_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/vendor/freetype/freetyped.lib)
+else ()
+  set(FREETYPE_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/vendor/freetype/freetype.lib)
+endif ()
+
+add_subdirectory(vendor/SDL)
+add_subdirectory(vendor/SDL_ttf)
+add_subdirectory(vendor/SDL_image)
+
+# we also have to silcne -Wc+11-narrowing in order to compile with SDL2
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-narrowing")
 
 find_package(CURL REQUIRED)
 find_program(RCEDIT rcedit-x64 rcedit)
@@ -67,11 +81,15 @@ add_executable(gelly_installer WIN32
         src/helpers/release-markdown.hpp
         src/gui/popups/popup.cpp
         src/gui/popups/popup.hpp
+        src/renderer/clay_sdl2_renderer.hpp
+        src/renderer/clay_sdl2_renderer.cpp
 )
 
 target_link_libraries(gelly_installer
         VDFParser
-        raylib_static
+        SDL2-static
+        SDL2_ttf
+        SDL2_image
         CURL::libcurl
         libzip::zip
         wldap32
@@ -83,9 +101,11 @@ target_include_directories(gelly_installer
         PRIVATE
         src
         ${CMAKE_CURRENT_BINARY_DIR}/src
+        vendor/SDL/include
+        vendor/SDL_ttf
+        vendor/SDL_image
         vendor/VDFParser
         vendor/imgui
-        vendor/raylib/src
         vendor/clay
         vendor/json/include
 )

@@ -174,102 +174,24 @@ void MainInstallerWindow::Render() {
   }
 
   CLAY(CLAY_ID("MainWindow"), CLAY_RECTANGLE(background),
-       CLAY_LAYOUT({.layoutDirection = CLAY_TOP_TO_BOTTOM,
+       CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
                     .sizing = expandLayout,
                     .padding = {16, 16},
-                    .childGap = 16})) {
-    CLAY(CLAY_ID("HeaderRow"),
-         CLAY_RECTANGLE({
-             .color = {30, 15, 15, 255},
-             .cornerRadius = 4,
-         }),
-         CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
-                      .sizing = {.width = CLAY_SIZING_GROW(0),
-                                 .height = CLAY_SIZING_FIXED(48)},
-                      .padding = {8, 8},
+                    .childGap = 24})) {
+    CLAY(CLAY_ID("LeftSide"), CLAY_RECTANGLE(background),
+         CLAY_LAYOUT({.layoutDirection = CLAY_TOP_TO_BOTTOM,
                       .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                                          .y = CLAY_ALIGN_Y_CENTER},
-                      .childGap = 32})) {
-      CLAY_TEXT(CLAY_STRING("Gelly Installer"),
+                      .sizing = {.width = CLAY_SIZING_GROW(0),
+                                 .height = CLAY_SIZING_GROW(0)},
+                      .padding = {16, 16},
+                      .childGap = 16})) {
+      CLAY_TEXT(CLAY_STRING("Hello from new renderer!"),
                 CLAY_TEXT_CONFIG({
                     .fontId = FONT_ID(FontId::Header32),
                     .fontSize = 32,
                     .textColor = {255, 255, 255, 255},
                 }));
-    }
-    CLAY(CLAY_ID("Changelog"),
-         CLAY_RECTANGLE({
-             .color = {20, 20, 20, 255},
-             .cornerRadius = 4,
-         }),
-         CLAY_LAYOUT({
-             .layoutDirection = CLAY_TOP_TO_BOTTOM,
-             .sizing = expandLayout,
-             .padding = {8, 8},
-             .childGap = 8,
-         })) {
-      CLAY_TEXT(versionString.string, CLAY_TEXT_CONFIG({
-                                          .fontId = FONT_ID(FontId::Version48),
-                                          .fontSize = 48,
-                                          .textColor = {255, 255, 255, 255},
-                                      }));
-      releaseMarkdown.Render();
-    }
-    CLAY(CLAY_ID("FooterRow"),
-         CLAY_RECTANGLE({
-             .color = {30, 15, 15, 255},
-             .cornerRadius = 4,
-         }),
-         CLAY_LAYOUT({
-             .layoutDirection = CLAY_LEFT_TO_RIGHT,
-             .sizing = {.width = CLAY_SIZING_GROW(0),
-                        .height = CLAY_SIZING_FIXED(64)},
-             .padding = {8, 8},
-             .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
-                                .y = CLAY_ALIGN_Y_CENTER},
-             .childGap = 32,
-         })) {
-
-      AutoGrowComponent();
-
-      if (gellyInstallation.has_value() &&
-          !gellyInstallation->IsOutdated(latestGellyInfo->version)) {
-        ButtonComponent({.text = launchButtonString.string,
-                         .color = {35, 117, 26, 255},
-                         .hoverColor = {50, 153, 38, 255},
-                         .onClick = &onLaunchClick});
-      } else {
-        ButtonComponent({.text = installButtonString.string,
-                         .color = {35, 117, 26, 255},
-                         .hoverColor = {50, 153, 38, 255},
-                         .onClick = &onInstallClick});
-      }
-
-      AutoGrowComponent();
-
-      CLAY(CLAY_ID("UninstallButton"),
-           CLAY_RECTANGLE({
-               .color = {30, 15, 15, 255},
-               .cornerRadius = 4,
-           }),
-           CLAY_LAYOUT({
-               .layoutDirection = CLAY_TOP_TO_BOTTOM,
-               .sizing = {.width = CLAY_SIZING_FIXED(128),
-                          .height = CLAY_SIZING_FIT()},
-               .padding = {0, 0},
-               .childGap = 4,
-               .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
-                                  .y = CLAY_ALIGN_Y_CENTER},
-           })) {
-        CLAY_TEXT(usingVersionString.string,
-                  CLAY_TEXT_CONFIG({
-                      .fontId = FONT_ID(FontId::Body16),
-                      .fontSize = 16,
-                      .textColor = {255, 255, 255, 255},
-                  }));
-        FullWidthButtonComponent(CLAY_STRING("Uninstall"), &onUninstallClick,
-                                 !gellyInstallation.has_value());
-      }
     }
   }
 }
