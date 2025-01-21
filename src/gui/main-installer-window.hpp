@@ -36,6 +36,9 @@ private:
   OnClickHandler onLaunchClick;
   OnClickHandler onInstallClick;
   OnClickHandler onUninstallClick;
+  OnClickHandler onComboButtonOpen;
+
+  bool showComboButtonOptions = false;
 
   SDL_Texture *gellyLogo = nullptr;
 
@@ -52,6 +55,7 @@ private:
   void HandleOnLaunchClick();
   void HandleOnInstallClick();
   void HandleOnUninstallClick();
+  void HandleOnComboButtonOpen();
 };
 
 } // namespace gelly
