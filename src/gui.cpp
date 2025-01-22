@@ -32,7 +32,7 @@ bool GUI::RunFrame() {
 
     if (event.type == SDL_MOUSEWHEEL) {
       scrollDelta.x = event.wheel.x;
-      scrollDelta.y = event.wheel.y;
+      scrollDelta.y = event.wheel.y * 2.f;
     }
   }
 

@@ -109,7 +109,7 @@ void Window::HandleClayErrors(Clay_ErrorData error) {
     break;
   case CLAY_ERROR_TYPE_TEXT_MEASUREMENT_CAPACITY_EXCEEDED:
     Clay_SetMaxMeasureTextCacheWordCount(
-        Clay_GetMaxMeasureTextCacheWordCount() * 2);
+        Clay_GetMaxMeasureTextCacheWordCount() * 4);
     reinitializeClay = true;
     break;
   default:

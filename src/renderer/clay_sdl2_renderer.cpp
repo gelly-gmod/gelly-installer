@@ -7,6 +7,24 @@
 #include <cstring>
 
 namespace gelly::renderer {
+namespace {
+constexpr auto MAX_SURFACE_TEXT_CACHE = 16384;
+std::array<SDL_Texture *, MAX_SURFACE_TEXT_CACHE> textureTextCache = {};
+
+uint32_t HashClayString(const Clay_String &string) {
+  return Clay__HashString(string, 0x0, 0xFF3321A).id;
+}
+
+SDL_Texture *GetTextureFromCache(const Clay_String &string) {
+  const auto hash = HashClayString(string);
+  return textureTextCache[hash % MAX_SURFACE_TEXT_CACHE];
+}
+
+void WriteTextureToCache(const Clay_String &string, SDL_Texture *surface) {
+  const auto hash = HashClayString(string);
+  textureTextCache[hash % MAX_SURFACE_TEXT_CACHE] = surface;
+}
+} // namespace
 static std::array<SDL2_Font, MAX_FONTS> SDL2_fonts = {};
 
 Clay_Dimensions SDL2_MeasureText(Clay_String *text,
@@ -22,8 +40,8 @@ Clay_Dimensions SDL2_MeasureText(Clay_String *text,
   }
   free(chars);
   return (Clay_Dimensions){
-      .width = (float)width,
-      .height = (float)height,
+      .width = static_cast<float>(width),
+      .height = static_cast<float>(height),
   };
 }
 
@@ -120,26 +138,30 @@ void Clay_SDL2_Render(SDL_Renderer *renderer,
       char *cloned = (char *)calloc(text.length + 1, 1);
       memcpy(cloned, text.chars, text.length);
       TTF_Font *font = SDL2_fonts[config->fontId].font;
-      SDL_Surface *surface =
-          TTF_RenderUTF8_Blended(font, cloned,
-                                 (SDL_Color){
-                                     .r = (Uint8)config->textColor.r,
-                                     .g = (Uint8)config->textColor.g,
-                                     .b = (Uint8)config->textColor.b,
-                                     .a = (Uint8)config->textColor.a,
-                                 });
-      SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+      SDL_Texture *cachedTexture = GetTextureFromCache(text);
+      if (!cachedTexture) {
+        SDL_Surface *surface =
+            TTF_RenderUTF8_Blended(font, cloned,
+                                   (SDL_Color){
+                                       .r = (Uint8)config->textColor.r,
+                                       .g = (Uint8)config->textColor.g,
+                                       .b = (Uint8)config->textColor.b,
+                                       .a = (Uint8)config->textColor.a,
+                                   });
+        cachedTexture = SDL_CreateTextureFromSurface(renderer, surface);
 
-      SDL_Rect destination = (SDL_Rect){
+        WriteTextureToCache(text, cachedTexture);
+        SDL_FreeSurface(surface);
+      }
+
+      SDL_FRect destination = (SDL_FRect){
           .x = boundingBox.x,
           .y = boundingBox.y,
           .w = boundingBox.width,
           .h = boundingBox.height,
       };
-      SDL_RenderCopy(renderer, texture, NULL, &destination);
+      SDL_RenderCopyF(renderer, cachedTexture, NULL, &destination);
 
-      SDL_DestroyTexture(texture);
-      SDL_FreeSurface(surface);
       free(cloned);
       break;
     }
