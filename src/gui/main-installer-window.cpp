@@ -73,28 +73,32 @@ struct ComboButtonProps {
 };
 
 void ComboButtonComponent(ComboButtonProps props) {
-  bool isComboButtonHovered = false;
-  CLAY(CLAY_ID("ComboButton"),
+  CLAY(CLAY_ID("ComboButtonContainer"),
        CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
                     .sizing = props.sizing,
-                    .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
-                                       .y = CLAY_ALIGN_Y_CENTER},
-                    .padding = {4, 4},
-                    .childGap = 8}),
-       CLAY_RECTANGLE({.color = Clay_Hovered() ? props.hoverColor : props.color,
-                       .cornerRadius = 8}),
-       isComboButtonHovered = Clay_Hovered()) {
-    CLAY_TEXT(props.actions[props.defaultAction].name,
-              CLAY_TEXT_CONFIG(ButtonTextConfig));
+                    .padding = {0, 0},
+                    .childGap = 0})) {
+    CLAY(CLAY_ID("ComboButton"),
+         CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
+                      .sizing = {.width = CLAY_SIZING_GROW(0),
+                                 .height = CLAY_SIZING_GROW(0)},
+                      .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
+                                         .y = CLAY_ALIGN_Y_CENTER},
+                      .padding = {4, 4},
+                      .childGap = 8}),
+         CLAY_RECTANGLE(
+             {.color = Clay_Hovered() ? props.hoverColor : props.color,
+              .cornerRadius = 8})) {
+      CLAY_TEXT(props.actions[props.defaultAction].name,
+                CLAY_TEXT_CONFIG(ButtonTextConfig));
+    }
 
-    CLAY(CLAY_RECTANGLE({.color = Clay_Hovered()
-                                      ? props.color
-                                      : (isComboButtonHovered ? props.hoverColor
-                                                              : props.color),
-                         .cornerRadius = 8}),
+    CLAY(CLAY_RECTANGLE(
+             {.color = Clay_Hovered() ? props.hoverColor : props.color,
+              .cornerRadius = 8}),
          CLAY_LAYOUT({.layoutDirection = CLAY_TOP_TO_BOTTOM,
-                      .sizing = {.width = CLAY_SIZING_PERCENT(0.3),
-                                 .height = CLAY_SIZING_FIT()},
+                      .sizing = {.width = CLAY_SIZING_PERCENT(0.2),
+                                 .height = CLAY_SIZING_GROW(0)},
                       .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                                          .y = CLAY_ALIGN_Y_CENTER},
                       .padding = {4, 4},
@@ -113,7 +117,8 @@ void ComboButtonComponent(ComboButtonProps props) {
       CLAY_ID("Options"),
       CLAY_FLOATING(
           {.zIndex = 1,
-           .parentId = Clay_GetElementId(CLAY_STRING("ComboButton")).id,
+           .parentId =
+               Clay_GetElementId(CLAY_STRING("ComboButtonContainer")).id,
            .attachment = {.element = CLAY_ATTACH_POINT_LEFT_TOP,
                           .parent = CLAY_ATTACH_POINT_LEFT_BOTTOM}}),
       CLAY_LAYOUT({
@@ -132,7 +137,7 @@ void ComboButtonComponent(ComboButtonProps props) {
                 .cornerRadius = 8}),
            CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
                         .sizing = {.width = CLAY_SIZING_GROW(0),
-                                   .height = CLAY_SIZING_FIXED(64)},
+                                   .height = CLAY_SIZING_FIXED(48)},
                         .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                                            .y = CLAY_ALIGN_Y_CENTER},
                         .padding = {4, 4},
@@ -194,6 +199,8 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Window> window,
         std::format("Install {}", latestGellyInfo->version));
     versionString = helpers::CLAY_DYN_STRING(
         std::format("Gelly {}", latestGellyInfo->version));
+    changelogHeader =
+        helpers::CLAY_DYN_STRING(std::format("{}", latestGellyInfo->version));
   }
 
   gellyLogo = renderer::LoadTexture(window->GetRenderer(), "gelly-logo.png");
@@ -206,8 +213,7 @@ void MainInstallerWindow::Render() {
   auto background = Clay_RectangleElementConfig{.color = {15, 15, 15, 255},
                                                 .cornerRadius = 8};
 
-  auto accentBackground = Clay_RectangleElementConfig{
-      .color = {60, 60, 60, 255}, .cornerRadius = 8};
+  const auto borderColor = Clay_Color{100, 100, 255, 255};
 
   if (!latestGellyInfo.has_value()) {
     CLAY(CLAY_ID("MainWindow"), CLAY_RECTANGLE(background),
@@ -244,14 +250,14 @@ void MainInstallerWindow::Render() {
                .layoutDirection = CLAY_TOP_TO_BOTTOM,
                .childAlignment = {.x = CLAY_ALIGN_X_CENTER,
                                   .y = CLAY_ALIGN_Y_CENTER},
-               .sizing = {.width = CLAY_SIZING_FIXED(256),
-                          .height = CLAY_SIZING_FIXED(256)},
+               .sizing = {.width = CLAY_SIZING_FIXED(512),
+                          .height = CLAY_SIZING_FIXED(512)},
            }),
            CLAY_IMAGE(
-               {.imageData = gellyLogo, .sourceDimensions = {1024, 1024}})) {}
+               {.imageData = gellyLogo, .sourceDimensions = {2000, 1000}})) {}
       ComboButtonComponent(
           {.sizing = {.width = CLAY_SIZING_FIXED(256),
-                      .height = CLAY_SIZING_FIXED(64)},
+                      .height = CLAY_SIZING_FIXED(48)},
            .color = {40, 40, 40, 255},
            .hoverColor = {50, 50, 50, 255},
            .opened = &showComboButtonOptions,
@@ -262,13 +268,30 @@ void MainInstallerWindow::Render() {
                {.name = CLAY_STRING("Uninstall"), .action = &onUninstallClick},
            }});
     }
-    CLAY(CLAY_ID("RightSide"), CLAY_RECTANGLE(accentBackground),
+    CLAY(CLAY_ID("RightSide"),
          CLAY_LAYOUT({
              .layoutDirection = CLAY_TOP_TO_BOTTOM,
              .sizing = expandLayout,
              .padding = {16, 16},
              .childGap = 4,
-         })) {
+         }),
+         CLAY_BORDER({.left = {.width = 2, .color = borderColor}})) {
+      CLAY(CLAY_ID("ChangelogHeader"),
+           CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
+                        .sizing = {.width = CLAY_SIZING_GROW(0),
+                                   .height = CLAY_SIZING_FIT()},
+                        .padding = {0, 4},
+                        .childGap = 0}),
+           CLAY_BORDER({
+               .bottom = {.width = 2, .color = borderColor},
+           })) {
+        CLAY_TEXT(changelogHeader.string,
+                  CLAY_TEXT_CONFIG({
+                      .fontId = FONT_ID(FontId::Version48),
+                      .fontSize = 48,
+                      .textColor = {255, 255, 255, 255},
+                  }));
+      }
       releaseMarkdown.Render();
     }
   }

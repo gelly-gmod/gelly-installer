@@ -45,6 +45,11 @@ Window::Window() {
 
   SDL_SetWindowTitle(window, WINDOW_TITLE);
 
+  SDL_RendererInfo info = {};
+  SDL_GetRendererInfo(renderer, &info);
+
+  Log::Info("Running SDL2 with renderer: {}", info.name);
+
   ReinitializeClay();
   Clay_SetMeasureTextFunction(renderer::SDL2_MeasureText);
 

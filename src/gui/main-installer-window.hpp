@@ -32,6 +32,7 @@ private:
   helpers::ClayDynamicString installButtonString = {};
   helpers::ClayDynamicString versionString = {};
   helpers::ClayDynamicString usingVersionString = {};
+  helpers::ClayDynamicString changelogHeader = {};
 
   OnClickHandler onLaunchClick;
   OnClickHandler onInstallClick;
