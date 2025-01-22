@@ -15,6 +15,8 @@ void ReleaseMarkdown::Render() {
     }
   }
 
+  lines.push_back(currentLine);
+
   for (const auto &line : lines) {
     if (line.empty() || line == "\r") {
       continue;

@@ -63,6 +63,7 @@ struct ComboButtonAction {
 
 struct ComboButtonProps {
   Clay_Sizing sizing;
+  Clay_Color chevronColor;
   Clay_Color color;
   Clay_Color hoverColor;
   size_t defaultAction;
@@ -103,6 +104,7 @@ void ComboButtonComponent(ComboButtonProps props) {
                                          .y = CLAY_ALIGN_Y_CENTER},
                       .padding = {4, 4},
                       .childGap = 4}),
+         CLAY_BORDER({.left = {.width = 2, .color = props.chevronColor}}),
          Clay_OnHover(ButtonOnClickHandler,
                       reinterpret_cast<intptr_t>(props.onOpen))) {
       CLAY_TEXT(CLAY_STRING(">"), CLAY_TEXT_CONFIG(ButtonTextConfig));
@@ -213,7 +215,7 @@ void MainInstallerWindow::Render() {
   auto background = Clay_RectangleElementConfig{.color = {15, 15, 15, 255},
                                                 .cornerRadius = 8};
 
-  const auto borderColor = Clay_Color{100, 100, 255, 255};
+  const auto borderColor = Clay_Color{100, 100, 100, 255};
 
   if (!latestGellyInfo.has_value()) {
     CLAY(CLAY_ID("MainWindow"), CLAY_RECTANGLE(background),
@@ -258,6 +260,7 @@ void MainInstallerWindow::Render() {
       ComboButtonComponent(
           {.sizing = {.width = CLAY_SIZING_FIXED(256),
                       .height = CLAY_SIZING_FIXED(48)},
+           .chevronColor = borderColor,
            .color = {40, 40, 40, 255},
            .hoverColor = {50, 50, 50, 255},
            .opened = &showComboButtonOptions,
@@ -275,6 +278,7 @@ void MainInstallerWindow::Render() {
              .padding = {16, 16},
              .childGap = 4,
          }),
+         CLAY_SCROLL({.vertical = true}),
          CLAY_BORDER({.left = {.width = 2, .color = borderColor}})) {
       CLAY(CLAY_ID("ChangelogHeader"),
            CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,

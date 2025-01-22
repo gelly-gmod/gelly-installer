@@ -7,7 +7,7 @@
 namespace gelly {
 namespace {
 constexpr auto LATEST_RELEASE_URL =
-    "https://api.github.com/repos/gelly-gmod/gelly/releases/latest";
+    "https://api.github.com/repos/gelly-gmod/gelly/releases/tags/1.28.0";
 }
 
 std::optional<LatestGellyInfo>
