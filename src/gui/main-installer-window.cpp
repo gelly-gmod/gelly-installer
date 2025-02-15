@@ -21,8 +21,8 @@ namespace gelly {
 namespace {
 constexpr auto HEADER = "Gelly Installer";
 constexpr auto ButtonTextConfig = Clay_TextElementConfig{
-    .fontId = FONT_ID(FontId::Button30),
-    .fontSize = 30,
+    .fontId = FONT_ID(FontId::Button24),
+    .fontSize = 24,
     .textColor = {255, 255, 255, 255},
 };
 
@@ -89,7 +89,10 @@ void ComboButtonComponent(ComboButtonProps props) {
                       .childGap = 8}),
          CLAY_RECTANGLE(
              {.color = Clay_Hovered() ? props.hoverColor : props.color,
-              .cornerRadius = 8})) {
+              .cornerRadius = 8}),
+         Clay_OnHover(ButtonOnClickHandler,
+                      reinterpret_cast<intptr_t>(
+                          props.actions[props.defaultAction].action))) {
       CLAY_TEXT(props.actions[props.defaultAction].name,
                 CLAY_TEXT_CONFIG(ButtonTextConfig));
     }
@@ -218,6 +221,28 @@ void MainInstallerWindow::Render() {
 
   const auto borderColor = Clay_Color{100, 100, 100, 255};
 
+  const std::vector<ComboButtonAction> uninstalledActions = {
+      {.name = CLAY_STRING("Install"), .action = &onInstallClick},
+  };
+
+  const std::vector<ComboButtonAction> installedOutOfDateActions = {
+      {.name = launchButtonString.string, .action = &onLaunchClick},
+      {.name = CLAY_STRING("Update"), .action = &onInstallClick},
+      {.name = CLAY_STRING("Uninstall"), .action = &onUninstallClick},
+  };
+
+  const std::vector<ComboButtonAction> installedUpToDateActions = {
+      {.name = launchButtonString.string, .action = &onLaunchClick},
+      {.name = CLAY_STRING("Uninstall"), .action = &onUninstallClick},
+  };
+
+  const auto actions =
+      gellyInstallation.has_value()
+          ? gellyInstallation->IsOutdated(latestGellyInfo->version)
+                ? installedOutOfDateActions
+                : installedUpToDateActions
+          : uninstalledActions;
+
   if (!latestGellyInfo.has_value()) {
     CLAY(CLAY_ID("MainWindow"), CLAY_RECTANGLE(background),
          CLAY_LAYOUT({.layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -258,19 +283,15 @@ void MainInstallerWindow::Render() {
            }),
            CLAY_IMAGE(
                {.imageData = gellyLogo, .sourceDimensions = {2000, 1000}})) {}
-      ComboButtonComponent(
-          {.sizing = {.width = CLAY_SIZING_FIXED(256),
-                      .height = CLAY_SIZING_FIXED(48)},
-           .chevronColor = borderColor,
-           .color = {40, 40, 40, 255},
-           .hoverColor = {50, 50, 50, 255},
-           .opened = &showComboButtonOptions,
-           .onOpen = &onComboButtonOpen,
-           .defaultAction = 0,
-           .actions = {
-               {.name = CLAY_STRING("Install"), .action = &onInstallClick},
-               {.name = CLAY_STRING("Uninstall"), .action = &onUninstallClick},
-           }});
+      ComboButtonComponent({.sizing = {.width = CLAY_SIZING_FIXED(256),
+                                       .height = CLAY_SIZING_FIXED(48)},
+                            .chevronColor = borderColor,
+                            .color = {40, 40, 40, 255},
+                            .hoverColor = {50, 50, 50, 255},
+                            .opened = &showComboButtonOptions,
+                            .onOpen = &onComboButtonOpen,
+                            .defaultAction = 0,
+                            .actions = actions});
     }
     CLAY(CLAY_ID("RightSide"),
          CLAY_LAYOUT({
@@ -283,6 +304,8 @@ void MainInstallerWindow::Render() {
          CLAY_BORDER({.left = {.width = 2, .color = borderColor}})) {
       CLAY(CLAY_ID("ChangelogHeader"),
            CLAY_LAYOUT({.layoutDirection = CLAY_LEFT_TO_RIGHT,
+                        .childAlignment = {.x = CLAY_ALIGN_X_LEFT,
+                                           .y = CLAY_ALIGN_Y_CENTER},
                         .sizing = {.width = CLAY_SIZING_GROW(0),
                                    .height = CLAY_SIZING_FIT()},
                         .padding = {0, 4},
@@ -296,6 +319,16 @@ void MainInstallerWindow::Render() {
                       .fontSize = 48,
                       .textColor = {255, 255, 255, 255},
                   }));
+        if (!gellyInstallation ||
+            (gellyInstallation &&
+             gellyInstallation->IsOutdated(latestGellyInfo->version))) {
+          CLAY_TEXT(CLAY_STRING(" (new version available)"),
+                    CLAY_TEXT_CONFIG({
+                        .fontId = FONT_ID(FontId::Header32),
+                        .fontSize = 32,
+                        .textColor = {100, 255, 100, 255},
+                    }));
+        }
       }
       helpers::RenderMarkdown(releaseMarkdown);
     }
