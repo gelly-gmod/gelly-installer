@@ -1,7 +1,10 @@
 #include "find-app-data.hpp"
 #include <array>
-#include <shlobj_core.h>
+// clang-format off
+#undef NOUSER
 #include <windows.h>
+#include <shlobj_core.h>
+// clang-format on
 
 namespace gelly::helpers {
 std::optional<std::filesystem::path> FindAppData() {

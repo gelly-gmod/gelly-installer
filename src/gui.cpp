@@ -2,79 +2,72 @@
 
 #include "logging/log.hpp"
 
-#include <backends/imgui_impl_sdl2.h>
-#include <backends/imgui_impl_sdlrenderer2.h>
-#include <imgui.h>
+#include <SDL.h>
 
 namespace gelly {
 GUI::GUI(std::shared_ptr<Window> window, std::shared_ptr<Curl> curl,
          bool autoUpdate)
-    : window(std::move(window)), curl(std::move(curl)),
-      mainInstallerWindow(curl, autoUpdate) {
-  InitializeImGUI();
+    : window(window), curl(curl),
+      mainInstallerWindow(window, curl, autoUpdate) {}
+
+GUI::~GUI() {}
+
+void GUI::UpdateCounter() {
+  lastCounter = currentCounter;
+  currentCounter = SDL_GetPerformanceCounter();
 }
 
-GUI::~GUI() { ShutdownImGUI(); }
+float GUI::GetDeltaTime() const {
+  return (static_cast<float>(currentCounter - lastCounter) * 1000.f) /
+         static_cast<float>(SDL_GetPerformanceFrequency());
+}
 
 bool GUI::RunFrame() {
-  ImGui_ImplSDLRenderer2_NewFrame();
-  ImGui_ImplSDL2_NewFrame();
-  ImGui::NewFrame();
+  Clay_Vector2 scrollDelta = {};
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    if (event.type == SDL_QUIT) {
+      return false;
+    }
 
+    if (event.type == SDL_MOUSEWHEEL) {
+      scrollDelta.x = event.wheel.x;
+      scrollDelta.y = event.wheel.y * 2.f;
+    }
+
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d) {
+      debugEnabled = !debugEnabled;
+      Clay_SetDebugModeEnabled(debugEnabled);
+    }
+  }
+
+  UpdateCounter();
+
+  int screenWidth = 0;
+  int screenHeight = 0;
+  SDL_GetWindowSize(window->GetWindow(), &screenWidth, &screenHeight);
+
+  Clay_SetLayoutDimensions({.width = static_cast<float>(screenWidth),
+                            .height = static_cast<float>(screenHeight)});
+
+  int mouseX = 0;
+  int mouseY = 0;
+  const auto mouseState = SDL_GetMouseState(&mouseX, &mouseY);
+  Clay_SetPointerState(
+      {
+          .x = static_cast<float>(mouseX),
+          .y = static_cast<float>(mouseY),
+      },
+      mouseState & SDL_BUTTON(SDL_BUTTON_LEFT));
+
+  Clay_UpdateScrollContainers(true, scrollDelta, GetDeltaTime());
+
+  Clay_BeginLayout();
   mainInstallerWindow.Render();
+  auto renderCommands = Clay_EndLayout();
 
-  Render();
+  window->RenderCommands(renderCommands);
 
   return true;
 }
-
-void GUI::ProcessSDLEvent(const SDL_Event &ev) {
-  ImGui_ImplSDL2_ProcessEvent(&ev);
-}
-
-void GUI::Render() {
-  const auto io = ImGui::GetIO();
-  ImGui::Render();
-  SDL_RenderSetScale(window->GetRenderer(), io.DisplayFramebufferScale.x,
-                     io.DisplayFramebufferScale.y);
-  SDL_SetRenderDrawColor(window->GetRenderer(), 0, 0, 0, 255);
-  SDL_RenderClear(window->GetRenderer());
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(),
-                                        window->GetRenderer());
-  SDL_RenderPresent(window->GetRenderer());
-}
-
-void GUI::InitializeImGUI() const {
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGui::StyleColorsDark();
-  auto &io = ImGui::GetIO();
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-  io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-
-  io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 16.0f);
-  io.Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 72.0f);
-  io.FontDefault = io.Fonts->Fonts[0];
-
-  auto &style = ImGui::GetStyle();
-  style.Colors[ImGuiCol_TitleBg] = ImVec4(0.5f, 0.1f, 0.1f, 1.0f);
-  style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.5f, 0.1f, 0.1f, 1.0f);
-  style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.5f, 0.1f, 0.1f, 1.0f);
-  style.WindowRounding = 4.f;
-  style.WindowPadding = ImVec2(8, 8);
-  style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
-
-  ImGui_ImplSDL2_InitForSDLRenderer(window->GetWindow(), window->GetRenderer());
-  ImGui_ImplSDLRenderer2_Init(window->GetRenderer());
-
-  Log::Info("Initialized ImGUI");
-}
-
-void GUI::ShutdownImGUI() {
-  ImGui_ImplSDLRenderer2_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
-  Log::Info("Shutdown ImGUI");
-}
-
 } // namespace gelly

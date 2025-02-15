@@ -1,6 +1,9 @@
 #include "launch-gmod.hpp"
-#include <Windows.h>
+// clang-format off
+#undef NOUSER
+#include <windows.h>
 #include <shellapi.h>
+// clang-format on
 
 namespace gelly {
 namespace {

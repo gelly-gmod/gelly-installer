@@ -1,3 +1,9 @@
+// clang-format off
+#undef NOUSER
+#include <windows.h>
+#include <shellapi.h>
+// clang-format on
+
 #include "app/config.hpp"
 #include "app/relocate-installation.hpp"
 #include "app/setup-uri-handler.hpp"
@@ -8,7 +14,6 @@
 #include "logging/log.hpp"
 #include "window.hpp"
 
-#include <SDL.h>
 #include <cstdio>
 #include <memory>
 
@@ -16,7 +21,20 @@ namespace {
 constexpr auto AUTO_UPDATE_ARG = "autoupdate";
 }
 
-int main(int argc, char *argv[]) {
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine,
+            int nCmdShow) {
+  auto argc = 0;
+  auto argvWideChar = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+  auto argv = new char *[argc];
+  for (auto i = 0; i < argc; ++i) {
+    const auto length = wcslen(argvWideChar[i]);
+    argv[i] = new char[length + 1];
+    wcstombs(argv[i], argvWideChar[i], length);
+    argv[i][length] = '\0';
+  }
+
+#ifndef _DEBUG
   if (!gelly::Config::IsURIHandlerRegistered() &&
       gelly::Config::IsAppInstalled()) {
     gelly::Log::Info("URI handler not registered, attempting to register");
@@ -45,6 +63,7 @@ int main(int argc, char *argv[]) {
       return 0;
     }
   }
+#endif
 
   auto autoUpdate = false;
   if (argc > 1) {
@@ -63,33 +82,18 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    fprintf(stderr, "SDL_Init Error: %s\n", SDL_GetError());
-    return 1;
-  }
-
-  gelly::Log::Info("SDL initialized, starting GUI");
   auto curl = std::make_shared<gelly::Curl>();
   auto window = std::make_shared<gelly::Window>();
   const auto gui = std::make_shared<gelly::GUI>(window, curl, autoUpdate);
   gelly::Log::Info("GUI initialized, starting event loop");
 
-  window->RunEventLoop(
-      [&](SDL_Event &ev) {
-        if (ev.type == SDL_QUIT) {
-          return false;
-        }
+  window->RunEventLoop([&] {
+    if (!gui->RunFrame()) {
+      return false;
+    }
 
-        gui->ProcessSDLEvent(ev);
-        return true;
-      },
-      [&] {
-        if (!gui->RunFrame()) {
-          return false;
-        }
-
-        return true;
-      });
+    return true;
+  });
 
   gelly::Log::Info("Event loop ended, shutting down GUI");
   gelly::Log::SaveToFile();

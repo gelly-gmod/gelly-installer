@@ -3,7 +3,7 @@
 // clang-format off
 #include "logging/log.hpp"
 
-
+#undef NOUSER
 #include <windows.h>
 #include <shellapi.h>
 // clang-format on

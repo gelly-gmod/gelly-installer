@@ -10,10 +10,24 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 project(gelly_installer)
 
-add_subdirectory(vendor/SDL)
 add_subdirectory(vendor/VDFParser)
 add_subdirectory(vendor/json)
 add_subdirectory(vendor/libzip)
+
+add_subdirectory(vendor/freetype)
+set(FREETYPE_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/vendor/freetype/include)
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(FREETYPE_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/vendor/freetype/freetyped.lib)
+else ()
+  set(FREETYPE_LIBRARY ${CMAKE_CURRENT_BINARY_DIR}/vendor/freetype/freetype.lib)
+endif ()
+
+add_subdirectory(vendor/SDL)
+add_subdirectory(vendor/SDL_ttf)
+add_subdirectory(vendor/SDL_image)
+
+# we also have to silcne -Wc+11-narrowing in order to compile with SDL2
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-narrowing")
 
 find_package(CURL REQUIRED)
 find_program(RCEDIT rcedit-x64 rcedit)
@@ -22,13 +36,6 @@ add_executable(gelly_installer WIN32
         src/main.cpp
         src/window.cpp
         src/window.hpp
-        vendor/imgui/imgui.cpp
-        vendor/imgui/imgui_draw.cpp
-        vendor/imgui/imgui_widgets.cpp
-        vendor/imgui/imgui_tables.cpp
-        vendor/imgui/imgui_demo.cpp
-        vendor/imgui/backends/imgui_impl_sdl2.cpp
-        vendor/imgui/backends/imgui_impl_sdlrenderer2.cpp
         src/gui.cpp
         src/gui.hpp
         src/gui/main-installer-window.cpp
@@ -47,9 +54,6 @@ add_executable(gelly_installer WIN32
         src/install/install-gelly.hpp
         src/install/uninstall-gelly.cpp
         src/install/uninstall-gelly.hpp
-        src/gui/popups/outdated-gelly.cpp
-        src/gui/popups/uninstall-gelly.cpp
-        src/gui/popups/fatal-error.cpp
         src/helpers/launch-gmod.cpp
         src/helpers/launch-gmod.hpp
         src/logging/log.hpp
@@ -72,16 +76,25 @@ add_executable(gelly_installer WIN32
         src/app/registry.hpp
         src/helpers/detect-elevation.cpp
         src/helpers/detect-elevation.hpp
+        src/helpers/clay-dynamic-string.hpp
+        src/helpers/release-markdown.cpp
+        src/helpers/release-markdown.hpp
+        src/gui/popups/popup.cpp
+        src/gui/popups/popup.hpp
+        src/renderer/clay_sdl2_renderer.hpp
+        src/renderer/clay_sdl2_renderer.cpp
 )
 
 target_link_libraries(gelly_installer
-        SDL2-static
-        SDL2main
         VDFParser
+        SDL2-static
+        SDL2_ttf
+        SDL2_image
         CURL::libcurl
         libzip::zip
         wldap32
         ws2_32
+        version
 )
 
 target_include_directories(gelly_installer
@@ -89,16 +102,29 @@ target_include_directories(gelly_installer
         src
         ${CMAKE_CURRENT_BINARY_DIR}/src
         vendor/SDL/include
+        vendor/SDL_ttf
+        vendor/SDL_image
         vendor/VDFParser
         vendor/imgui
+        vendor/clay
         vendor/json/include
 )
 
 target_compile_definitions(gelly_installer
         PRIVATE
         WIN32_LEAN_AND_MEAN
+        # Removes a lot of conflicting definitions from windows.h
+        NOGDI
+        NOUSER
         NOMINMAX
 )
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_definitions(gelly_installer
+          PRIVATE
+          CLAY_DEBUG
+  )
+endif ()
 
 include(ExtraFiles)
 include(GetCurrentVersion)
