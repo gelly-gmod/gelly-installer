@@ -196,7 +196,8 @@ MainInstallerWindow::MainInstallerWindow(std::shared_ptr<Window> window,
   }
 
   if (latestGellyInfo.has_value()) {
-    releaseMarkdown = helpers::ReleaseMarkdown(latestGellyInfo->changelog);
+    releaseMarkdown =
+        helpers::CreateReleaseMarkdown(latestGellyInfo->changelog);
     installButtonString = helpers::CLAY_DYN_STRING(
         std::format("Install {}", latestGellyInfo->version));
     versionString = helpers::CLAY_DYN_STRING(
@@ -296,7 +297,7 @@ void MainInstallerWindow::Render() {
                       .textColor = {255, 255, 255, 255},
                   }));
       }
-      releaseMarkdown.Render();
+      helpers::RenderMarkdown(releaseMarkdown);
     }
   }
 }

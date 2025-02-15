@@ -34,6 +34,11 @@ bool GUI::RunFrame() {
       scrollDelta.x = event.wheel.x;
       scrollDelta.y = event.wheel.y * 2.f;
     }
+
+    if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d) {
+      debugEnabled = !debugEnabled;
+      Clay_SetDebugModeEnabled(debugEnabled);
+    }
   }
 
   UpdateCounter();
@@ -54,11 +59,6 @@ bool GUI::RunFrame() {
           .y = static_cast<float>(mouseY),
       },
       mouseState & SDL_BUTTON(SDL_BUTTON_LEFT));
-
-  if (SDL_GetKeyboardState(nullptr)[SDL_SCANCODE_D]) {
-    debugEnabled = !debugEnabled;
-    Clay_SetDebugModeEnabled(debugEnabled);
-  }
 
   Clay_UpdateScrollContainers(true, scrollDelta, GetDeltaTime());
 
